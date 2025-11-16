@@ -8,6 +8,11 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 export const Route = createFileRoute('/_authentication/google-callback')({
+  // Bypass parent's beforeLoad - allow access even if already authenticated
+  beforeLoad: () => {
+    // Just return without checking auth status
+    return;
+  },
   component: GoogleCallbackPage,
 });
 
