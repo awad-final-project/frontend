@@ -11,6 +11,8 @@ RUN pnpm install
 COPY . .
 
 # Set the API URL for the build
+# Default to localhost for local development
+# Override with --build-arg VITE_API_BASE_URL=https://your-domain.com/api in production
 ARG VITE_API_BASE_URL=http://localhost:3000
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
