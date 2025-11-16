@@ -1,0 +1,31 @@
+name: Quality Check
+
+on:
+  pull_request:
+    branches: ["develop"]
+  push:
+    branches: ["develop"]
+
+jobs:
+  build-check:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/checkout@v4
+      - if: ${{ github.event_name == 'pull_request' }}
+        uses: ./.github/actions/setup-dependencies
+      - if: ${{ github.event_name == 'pull_request' }}
+        run: pnpm build
+
+  deploy-check:
+    runs-on: ubuntu-latest
+    steps:
+      - if: ${{ github.event_name == 'push' }}
+        run: echo The push was to the develop branch
+      - if: ${{ github.event_name == 'push' }}
+        name: Workflow Webhook Action
+        uses: distributhor/workflow-webhook@v3.0.7
+        with:
+          webhook_url: ${{ secrets.WEBHOOK_URL }}
+          verbose: true
+          max_time: 180
