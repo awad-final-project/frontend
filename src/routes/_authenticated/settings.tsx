@@ -8,8 +8,10 @@ import { useUserProfile } from "@/hooks/react-query/useAuth";
 import { Separator } from "@/components/ui/separator";
 
 export const Route = createFileRoute("/_authenticated/settings")({
-  beforeLoad: async (ctx) => {
-    await ensureAuthForRoute(ctx);
+  beforeLoad: async () => {
+    const result = await ensureAuthForRoute();
+    if (result !== true) return result;
+    return true;
   },
   component: SettingsPage,
 });
