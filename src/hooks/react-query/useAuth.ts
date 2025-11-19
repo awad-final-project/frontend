@@ -19,22 +19,21 @@ export const useSignIn = () => {
   return useMutation({
     mutationFn: signIn,
     onSuccess: (data) => {
-      // const authUser = getAuthUser();
-      // queryClient.setQueryData(authKeys.detail(), authUser);
       // signIn already sets tokens, but ensure store updated
       if (data?.accessToken) setAccessToken(data.accessToken);
-  // refetch protected queries (profile)
-  queryClient.invalidateQueries({ queryKey: authKeys.detail() });
-      navigate({ to: "/" });
+      // refetch protected queries (profile)
+      queryClient.invalidateQueries({ queryKey: authKeys.detail() });
+      // Redirect to inbox after login
+      navigate({ to: "/inbox" });
       toast({
-        title: "Success",
+        title: "Welcome back!",
         description: "You have successfully logged in",
         variant: "default",
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
+        title: "Login failed",
         description: error.message,
         variant: "destructive",
       });

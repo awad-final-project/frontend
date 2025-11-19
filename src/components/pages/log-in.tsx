@@ -48,84 +48,92 @@ export default function LogInPage() {
   }
 
   return (
-    <Card className="mx-auto w-full max-w-md border border-slate-200 shadow-sm">
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl font-semibold text-slate-900">Log in</CardTitle>
+    <Card className="w-full border border-slate-200 shadow-lg">
+      <CardHeader className="space-y-2 text-center">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+          <Mail className="h-6 w-6 text-primary" />
+        </div>
+        <CardTitle className="text-2xl font-bold text-slate-900">Welcome Back</CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
-          Enter your registered email and password to continue.
+          Sign in to access your email dashboard
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-          <GoogleButton />
-          <div className="relative">
-            <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-muted-foreground">
-              OR
-            </span>
-          </div>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-slate-800">Email</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          type="email"
-                          placeholder="example@gmail.com"
-                          error={Boolean(form.formState.errors.email)}
-                          className="pl-10"
-                          {...field}
-                          onChange={field.onChange}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="text-sm font-medium text-slate-800">Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-                        <Input
-                          placeholder="••••••••"
-                          error={Boolean(form.formState.errors.password)}
-                          {...field}
-                          type="password"
-                          className="pl-10"
-                          onChange={field.onChange}
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={signInMutation.isPending}>
-                {signInMutation.isPending && (
-                  <Loader2 className="mr-2 size-4 animate-spin text-white" />
-                )}
-                Log in
-              </Button>
-            </form>
-          </Form>
-        </CardContent>
-      <CardFooter className="text-center text-sm text-muted-foreground">
-          Don't have an account?
-          <Link to="/sign-up" className="ml-1 font-medium text-primary hover:underline">
-            Sign up
-          </Link>
-        </CardFooter>
+        <GoogleButton />
+        <div className="relative">
+          <Separator />
+          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-muted-foreground">
+            OR
+          </span>
+        </div>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium text-slate-800">Email</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        type="email"
+                        placeholder="example@gmail.com"
+                        error={Boolean(form.formState.errors.email)}
+                        className="pl-10"
+                        {...field}
+                        onChange={field.onChange}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-sm font-medium text-slate-800">Password</FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                      <Input
+                        placeholder="••••••••"
+                        error={Boolean(form.formState.errors.password)}
+                        {...field}
+                        type="password"
+                        className="pl-10"
+                        onChange={field.onChange}
+                      />
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {signInMutation.isError && (
+              <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                Invalid email or password. Please try again.
+              </div>
+            )}
+            <Button type="submit" className="w-full" disabled={signInMutation.isPending}>
+              {signInMutation.isPending && (
+                <Loader2 className="mr-2 size-4 animate-spin text-white" />
+              )}
+              Sign In
+            </Button>
+          </form>
+        </Form>
+      </CardContent>
+      <CardFooter className="flex justify-center border-t pt-6 text-center text-sm text-muted-foreground">
+        Don't have an account?
+        <Link to="/sign-up" className="ml-1 font-medium text-primary hover:underline">
+          Sign up
+        </Link>
+      </CardFooter>
     </Card>
   );
 }

@@ -1,6 +1,6 @@
 import { useEmailDetail, useToggleStar, useMarkAsRead, useDeleteEmail } from '@/hooks/react-query/useEmails';
 import { Button } from '@/components/ui/button';
-import { Loader2, Star, Reply, ReplyAll, Forward, Trash2, Mail, X } from 'lucide-react';
+import { Loader2, Star, Reply, ReplyAll, Forward, Trash2, Mail, X, ArrowLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
 
@@ -8,9 +8,10 @@ interface EmailDetailProps {
   emailId: string;
   onClose: () => void;
   onDelete: () => void;
+  onBack?: () => void;
 }
 
-export function EmailDetail({ emailId, onClose, onDelete }: EmailDetailProps) {
+export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailProps) {
   const { data: email, isLoading } = useEmailDetail(emailId);
   const toggleStarMutation = useToggleStar();
   const markAsReadMutation = useMarkAsRead();
@@ -57,10 +58,17 @@ export function EmailDetail({ emailId, onClose, onDelete }: EmailDetailProps) {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b p-4">
+      <div className="border-b bg-muted/30 p-4">
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-xl font-semibold">{email.subject}</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
+          <div className="flex items-center gap-2">
+            {onBack && (
+              <Button variant="ghost" size="icon" onClick={onBack} className="md:hidden">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            )}
+            <h2 className="text-xl font-semibold line-clamp-1">{email.subject}</h2>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onClose} className="hidden md:flex">
             <X className="h-4 w-4" />
           </Button>
         </div>

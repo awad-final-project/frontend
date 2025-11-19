@@ -67,21 +67,25 @@ export default function SignUpPage() {
   }
 
   return (
-    <Card className="mx-auto w-full max-w-md border border-slate-200 shadow-sm">
-      <CardHeader className="text-center">
-        <CardTitle className="text-xl font-semibold text-slate-900">Create an account</CardTitle>
+    <Card className="w-full border border-slate-200 shadow-lg">
+      <CardHeader className="space-y-2 text-center">
+        <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+          <User className="h-6 w-6 text-primary" />
+        </div>
+        <CardTitle className="text-2xl font-bold text-slate-900">Create Account</CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
-          Fill in the fields below to register a new user.</CardDescription>
+          Sign up to get started with your email dashboard
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-          <GoogleButton />
-          <div className="relative">
-            <Separator />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-muted-foreground">
-              OR
-            </span>
-          </div>
-          <Form {...form}>
+        <GoogleButton />
+        <div className="relative">
+          <Separator />
+          <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2 text-xs text-muted-foreground">
+            OR
+          </span>
+        </div>
+        <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
                 control={form.control}
@@ -185,21 +189,26 @@ export default function SignUpPage() {
                   </FormItem>
                 )}
               />
+              {signUpMutation.isError && (
+                <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                  Registration failed. Please try again.
+                </div>
+              )}
               <Button type="submit" className="w-full" disabled={signUpMutation.isPending}>
                 {signUpMutation.isPending && (
                   <Loader2 className="mr-2 size-4 animate-spin text-white" />
                 )}
-                Create account
+                Create Account
               </Button>
             </form>
           </Form>
         </CardContent>
-      <CardFooter className="text-center text-sm text-muted-foreground">
-          Already have an account?
-          <Link to="/log-in" className="ml-1 font-medium text-primary hover:underline">
-            Log in
-          </Link>
-        </CardFooter>
+      <CardFooter className="flex justify-center border-t pt-6 text-center text-sm text-muted-foreground">
+        Already have an account?
+        <Link to="/log-in" className="ml-1 font-medium text-primary hover:underline">
+          Log in
+        </Link>
+      </CardFooter>
     </Card>
   );
 }

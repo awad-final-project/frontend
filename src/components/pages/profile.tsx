@@ -9,10 +9,11 @@ import {
   FormMessage,
 } from "@components/ui/form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2 } from "lucide-react";
+import { Loader2, Mail, ArrowLeft, Shield, User as UserIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useNavigate } from "@tanstack/react-router";
 
 import { Input } from "@/components/ui/input";
 import { useSignOut, useUserProfile } from "@/hooks/react-query/useAuth";
@@ -27,6 +28,7 @@ const formSchema = z.object({
 type FormInputs = z.infer<typeof formSchema>;
 
 export default function ProfilePage() {
+  const navigate = useNavigate();
   const form = useForm<FormInputs>({
     defaultValues: {
       email: "",
@@ -49,21 +51,48 @@ export default function ProfilePage() {
   }, [data, form, isSuccess]);
 
   return (
-    <div className="min-h-screen bg-slate-100 px-4 py-12">
-      <div className="mx-auto flex w-full max-w-3xl flex-col gap-6">
-        <Card className="border border-slate-200 shadow-sm">
-          <CardHeader className="text-center">
-            <CardTitle className="text-2xl font-semibold text-slate-900">Profile</CardTitle>
-            <CardDescription className="text-sm text-muted-foreground">
-              Your account details are read-only. Update them from the backend if needed.
-            </CardDescription>
-            {userRole && (
-              <div className="mt-2 flex justify-center">
-                <Badge variant="secondary" className="text-xs">
-                  Role: {userRole}
-                </Badge>
+    <div className="min-h-screen bg-slate-50 px-4 py-8">
+      <div className="mx-auto flex w-full max-w-2xl flex-col gap-6">
+        {/* Header with navigation */}
+        <div className="flex items-center gap-4">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => navigate({ to: '/inbox' })}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-1">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg border-2 border-slate-200 bg-white">
+                <UserIcon className="h-6 w-6 text-slate-700" />
               </div>
-            )}
+              <div>
+                <h1 className="text-2xl font-bold text-slate-900">My Profile</h1>
+                <p className="text-sm text-muted-foreground">View your account information</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-semibold text-slate-900">Account Details</CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                  Your account information is read-only
+                </CardDescription>
+              </div>
+              {userRole && (
+                <Badge 
+                  variant={userRole === 'admin' ? 'default' : 'secondary'}
+                >
+                  {userRole === 'admin' && <Shield className="mr-1 h-3 w-3" />}
+                  {userRole.toUpperCase()}
+                </Badge>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -112,17 +141,28 @@ export default function ProfilePage() {
                       </FormItem>
                     )}
                   />
-                  <Button
-                    type="submit"
-                    variant="destructive"
-                    className="w-full"
-                    disabled={signOutMutation.isPending}
-                  >
-                    {signOutMutation.isPending && (
-                      <Loader2 className="mr-2 size-4 animate-spin" />
-                    )}
-                    Log out
-                  </Button>
+                  <div className="flex gap-3 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => navigate({ to: '/inbox' })}
+                    >
+                      <Mail className="mr-2 h-4 w-4" />
+                      Back to Inbox
+                    </Button>
+                    <Button
+                      type="submit"
+                      variant="destructive"
+                      className="flex-1"
+                      disabled={signOutMutation.isPending}
+                    >
+                      {signOutMutation.isPending && (
+                        <Loader2 className="mr-2 size-4 animate-spin" />
+                      )}
+                      Logout
+                    </Button>
+                  </div>
                 </form>
               </Form>
             )}

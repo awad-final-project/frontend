@@ -12,6 +12,37 @@ interface EmailListProps {
 export function EmailList({ folder, selectedEmailId, onSelectEmail }: EmailListProps) {
   const { data, isLoading } = useEmailsByFolder(folder);
 
+  // Keyboard navigation
+  const handleKeyDown = (e: React.KeyboardEvent, emailId: string, index: number) => {
+    if (!data?.emails) return;
+
+    switch (e.key) {
+      case 'Enter':
+      case ' ':
+        e.preventDefault();
+        onSelectEmail(emailId);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        if (index < data.emails.length - 1) {
+          const nextButton = document.querySelector(
+            `[data-email-index="${index + 1}"]`
+          ) as HTMLButtonElement;
+          nextButton?.focus();
+        }
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        if (index > 0) {
+          const prevButton = document.querySelector(
+            `[data-email-index="${index - 1}"]`
+          ) as HTMLButtonElement;
+          prevButton?.focus();
+        }
+        break;
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8">
@@ -29,19 +60,24 @@ export function EmailList({ folder, selectedEmailId, onSelectEmail }: EmailListP
   }
 
   return (
-    <div className="overflow-y-auto">
-      {data.emails.map((email) => {
+    <div className="overflow-y-auto" role="list">
+      {data.emails.map((email, index) => {
         const isSelected = selectedEmailId === email.id;
 
         return (
           <button
             key={email.id}
+            data-email-index={index}
             onClick={() => onSelectEmail(email.id)}
+            onKeyDown={(e) => handleKeyDown(e, email.id, index)}
             className={cn(
-              'w-full border-b p-4 text-left transition-colors hover:bg-muted/50',
+              'w-full border-b p-4 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset',
               isSelected && 'bg-muted',
               !email.isRead && 'font-semibold',
             )}
+            role="listitem"
+            aria-label={`Email from ${email.from}: ${email.subject}`}
+            aria-selected={isSelected}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="flex-1 overflow-hidden">
@@ -50,7 +86,7 @@ export function EmailList({ folder, selectedEmailId, onSelectEmail }: EmailListP
                     {email.from}
                   </span>
                   {email.isStarred && (
-                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                    <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" aria-label="Starred" />
                   )}
                 </div>
                 <p className={cn('truncate text-sm', !email.isRead && 'font-semibold')}>
@@ -65,7 +101,7 @@ export function EmailList({ folder, selectedEmailId, onSelectEmail }: EmailListP
                   {format(new Date(email.sentAt), 'MMM d')}
                 </span>
                 {!email.isRead && (
-                  <div className="h-2 w-2 rounded-full bg-blue-500" />
+                  <div className="h-2 w-2 rounded-full bg-blue-500" aria-label="Unread" />
                 )}
               </div>
             </div>

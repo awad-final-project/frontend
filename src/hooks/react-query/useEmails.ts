@@ -82,10 +82,42 @@ export function useMarkAsRead() {
   return useMutation({
     mutationFn: ({ id, isRead }: { id: string; isRead: boolean }) =>
       emailService.markAsRead(id, isRead),
+    onMutate: async ({ id, isRead }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['email', id] });
+      await queryClient.cancelQueries({ queryKey: ['emails'] });
+
+      // Snapshot previous value
+      const previousEmail = queryClient.getQueryData(['email', id]);
+
+      // Optimistically update email detail
+      queryClient.setQueryData(['email', id], (old: any) => {
+        if (!old) return old;
+        return { ...old, isRead };
+      });
+
+      // Optimistically update email lists
+      queryClient.setQueriesData({ queryKey: ['emails'] }, (old: any) => {
+        if (!old?.emails) return old;
+        return {
+          ...old,
+          emails: old.emails.map((email: any) =>
+            email.id === id ? { ...email, isRead } : email
+          ),
+        };
+      });
+
+      return { previousEmail };
+    },
+    onError: (_err, { id }, context) => {
+      // Rollback on error
+      if (context?.previousEmail) {
+        queryClient.setQueryData(['email', id], context.previousEmail);
+      }
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
-      queryClient.invalidateQueries({ queryKey: ['emails'] });
-      queryClient.invalidateQueries({ queryKey: ['email'] });
     },
   });
 }
