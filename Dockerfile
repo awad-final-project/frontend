@@ -24,6 +24,10 @@ COPY . .
 ARG VITE_API_BASE_URL=http://localhost:3000
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 
+# Set cookie auth mode
+ARG VITE_USE_COOKIE_AUTH=false
+ENV VITE_USE_COOKIE_AUTH=$VITE_USE_COOKIE_AUTH
+
 # Build the application
 RUN pnpm run build
 
