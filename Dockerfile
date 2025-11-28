@@ -22,13 +22,13 @@ COPY . .
 # Default to localhost for local development
 # Override with --build-arg VITE_API_BASE_URL=https://your-domain.com/api in production
 ARG VITE_API_BASE_URL=http://localhost:3000
-ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
-
-# Set cookie auth mode
 ARG VITE_USE_COOKIE_AUTH=false
-ENV VITE_USE_COOKIE_AUTH=$VITE_USE_COOKIE_AUTH
+
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
+ENV VITE_USE_COOKIE_AUTH=${VITE_USE_COOKIE_AUTH}
 
 # Build the application
+RUN echo "Building with VITE_API_BASE_URL=${VITE_API_BASE_URL}"
 RUN pnpm run build
 
 # Stage 2: Production stage with nginx
