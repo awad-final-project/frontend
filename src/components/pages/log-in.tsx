@@ -53,7 +53,7 @@ export default function LogInPage() {
         <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
           <Mail className="h-6 w-6 text-primary" />
         </div>
-        <CardTitle className="text-2xl font-bold text-slate-900">Welcome Back!!</CardTitle>
+        <CardTitle className="text-2xl font-bold text-slate-900">Welcome Tài!!</CardTitle>
         <CardDescription className="text-sm text-muted-foreground">
           Sign in to access your email dashboard
         </CardDescription>
