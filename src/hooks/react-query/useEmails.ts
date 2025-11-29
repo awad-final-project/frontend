@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { emailService, SendEmailDto } from '@/services/email';
+import { emailService, SendEmailDto, ReplyEmailDto } from '@/services/email';
 import { useToast } from '@/hooks/use-toast';
 
 export function useMailboxes() {
@@ -43,6 +43,31 @@ export function useSendEmail() {
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to send email',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useReplyEmail() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: ReplyEmailDto }) =>
+      emailService.replyEmail(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+      toast({
+        title: 'Success',
+        description: 'Reply sent successfully!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to send reply',
         variant: 'destructive',
       });
     },
