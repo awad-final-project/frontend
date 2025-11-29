@@ -2,7 +2,7 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ main ]
+    branches: [ "**" ]
   pull_request:
     branches: [ main ]
 
@@ -48,7 +48,8 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            VITE_API_BASE_URL=https://mail.nguyenanhhao.site/api
+            VITE_API_BASE_URL=/api
+            VITE_USE_COOKIE_AUTH=true
 
       - name: Trigger deployment
         if: github.ref == 'refs/heads/main'
