@@ -1,8 +1,15 @@
-import { useEmailDetail, useToggleStar, useMarkAsRead, useDeleteEmail } from '@/hooks/react-query/useEmails';
-import { Button } from '@/components/ui/button';
-import { Loader2, Star, Reply, ReplyAll, Forward, Trash2, Mail, X, ArrowLeft } from 'lucide-react';
-import { format } from 'date-fns';
-import { Separator } from '@/components/ui/separator';
+import {
+  useEmailDetail,
+  useToggleStar,
+  useMarkAsRead,
+  useDeleteEmail,
+} from "@/hooks/react-query/useEmails";
+import { Button } from "@/components/ui/button";
+import { Loader2, Star, Reply, ReplyAll, Forward, Trash2, Mail, X, ArrowLeft } from "lucide-react";
+import { format } from "date-fns";
+import { Separator } from "@/components/ui/separator";
+import { ComposeDialog, ComposeMode } from "./compose-dialog";
+import { useState } from "react";
 
 interface EmailDetailProps {
   emailId: string;
@@ -16,6 +23,8 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
   const toggleStarMutation = useToggleStar();
   const markAsReadMutation = useMarkAsRead();
   const deleteEmailMutation = useDeleteEmail();
+  const [composeOpen, setComposeOpen] = useState(false);
+  const [composeMode, setComposeMode] = useState<ComposeMode>("compose");
 
   const handleToggleStar = () => {
     if (email) {
@@ -37,6 +46,21 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
         },
       });
     }
+  };
+
+  const handleReply = () => {
+    setComposeMode("reply");
+    setComposeOpen(true);
+  };
+
+  const handleReplyAll = () => {
+    setComposeMode("replyAll");
+    setComposeOpen(true);
+  };
+
+  const handleForward = () => {
+    setComposeMode("forward");
+    setComposeOpen(true);
   };
 
   if (isLoading) {
@@ -66,7 +90,7 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             )}
-            <h2 className="text-xl font-semibold line-clamp-1">{email.subject}</h2>
+            <h2 className="line-clamp-1 text-xl font-semibold">{email.subject}</h2>
           </div>
           <Button variant="ghost" size="icon" onClick={onClose} className="hidden md:flex">
             <X className="h-4 w-4" />
@@ -86,7 +110,7 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
             <div className="flex items-center gap-2">
               <span className="font-medium">Date:</span>
               <span className="text-muted-foreground">
-                {format(new Date(email.sentAt), 'PPpp')}
+                {format(new Date(email.sentAt), "PPpp")}
               </span>
             </div>
           </div>
@@ -95,15 +119,15 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
         <Separator className="my-4" />
 
         <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleReply}>
             <Reply className="mr-2 h-4 w-4" />
             Reply
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleReplyAll}>
             <ReplyAll className="mr-2 h-4 w-4" />
             Reply All
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleForward}>
             <Forward className="mr-2 h-4 w-4" />
             Forward
           </Button>
@@ -114,11 +138,9 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
             disabled={toggleStarMutation.isPending}
           >
             <Star
-              className={`mr-2 h-4 w-4 ${
-                email.isStarred ? 'fill-yellow-400 text-yellow-400' : ''
-              }`}
+              className={`mr-2 h-4 w-4 ${email.isStarred ? "fill-yellow-400 text-yellow-400" : ""}`}
             />
-            {email.isStarred ? 'Unstar' : 'Star'}
+            {email.isStarred ? "Unstar" : "Star"}
           </Button>
           <Button
             variant="outline"
@@ -147,6 +169,13 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
           <div className="whitespace-pre-wrap">{email.body}</div>
         </div>
       </div>
+
+      <ComposeDialog
+        open={composeOpen}
+        onOpenChange={setComposeOpen}
+        mode={composeMode}
+        initialData={email ? { email } : undefined}
+      />
     </div>
   );
 }
