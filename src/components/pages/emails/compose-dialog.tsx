@@ -32,7 +32,6 @@ function extractEmailAddress(emailString: string): string {
 const formSchema = z.object({
   to: z.string().refine(
     (val) => {
-      // Allow comma-separated emails for reply all
       const emails = val.split(",").map((e) => e.trim());
       return emails.every((emailStr) => {
         if (!emailStr) return false;
@@ -80,13 +79,11 @@ export function ComposeDialog({
   const sendEmailMutation = useSendEmail();
   const replyEmailMutation = useReplyEmail();
 
-  // Update form when initialData or mode changes
   useEffect(() => {
     if (open && initialData?.email) {
       const email = initialData.email;
 
       if (mode === "forward") {
-        // Forward: empty to, subject with Fw:, body with original message
         form.reset({
           to: initialData.to || "",
           subject: email.subject.startsWith("Fw:") ? email.subject : `Fw: ${email.subject}`,
@@ -95,10 +92,8 @@ export function ComposeDialog({
             `\n\n--- Forwarded Message ---\nFrom: ${email.from}\nTo: ${email.to}\nDate: ${email.sentAt}\nSubject: ${email.subject}\n\n${email.body}`,
         });
       } else if (mode === "reply" || mode === "replyAll") {
-        // Reply/Reply All: to is original sender (or all recipients for reply all), subject with Re:, body with original message
         let toValue = extractEmailAddress(email.from);
         if (mode === "replyAll" && email.to) {
-          // For reply all, include original sender + original recipients (excluding current user if needed)
           const originalToEmails = email.to.split(",").map((e) => extractEmailAddress(e.trim()));
           const recipientsSet = new Set([extractEmailAddress(email.from)]);
           originalToEmails.forEach((e) => {
@@ -119,7 +114,6 @@ export function ComposeDialog({
           body: initialData.body || "",
         });
       } else {
-        // Compose: use provided initial data or empty
         form.reset({
           to: initialData.to || "",
           subject: initialData.subject || "",
@@ -127,14 +121,12 @@ export function ComposeDialog({
         });
       }
     } else if (open && initialData) {
-      // If no email but has initialData
       form.reset({
         to: initialData.to || "",
         subject: initialData.subject || "",
         body: initialData.body || "",
       });
     } else if (open) {
-      // Reset to empty for new compose
       form.reset({
         to: "",
         subject: "",
@@ -145,13 +137,7 @@ export function ComposeDialog({
 
   const onSubmit = (data: FormInputs) => {
     if (mode === "reply" || mode === "replyAll") {
-      // Use reply API
       if (initialData?.email) {
-        console.log(`🟢 [ComposeDialog] Submitting ${mode} to email ID:`, initialData.email.id, {
-          to: data.to,
-          subject: data.subject,
-          bodyLength: data.body.length,
-        });
         replyEmailMutation.mutate(
           {
             id: initialData.email.id,
@@ -162,7 +148,6 @@ export function ComposeDialog({
           },
           {
             onSuccess: () => {
-              console.log(`✅ [ComposeDialog] ${mode} submitted successfully`);
               form.reset();
               onOpenChange(false);
             },
@@ -170,11 +155,8 @@ export function ComposeDialog({
         );
       }
     } else {
-      // Use send API for compose and forward
-      console.log(`🟢 [ComposeDialog] Submitting ${mode}:`, data);
       sendEmailMutation.mutate(data, {
         onSuccess: () => {
-          console.log(`✅ [ComposeDialog] ${mode} submitted successfully`);
           form.reset();
           onOpenChange(false);
         },
