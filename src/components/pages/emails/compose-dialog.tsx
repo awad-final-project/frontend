@@ -147,6 +147,11 @@ export function ComposeDialog({
     if (mode === "reply" || mode === "replyAll") {
       // Use reply API
       if (initialData?.email) {
+        console.log(`🟢 [ComposeDialog] Submitting ${mode} to email ID:`, initialData.email.id, {
+          to: data.to,
+          subject: data.subject,
+          bodyLength: data.body.length,
+        });
         replyEmailMutation.mutate(
           {
             id: initialData.email.id,
@@ -157,6 +162,7 @@ export function ComposeDialog({
           },
           {
             onSuccess: () => {
+              console.log(`✅ [ComposeDialog] ${mode} submitted successfully`);
               form.reset();
               onOpenChange(false);
             },
@@ -165,8 +171,10 @@ export function ComposeDialog({
       }
     } else {
       // Use send API for compose and forward
+      console.log(`🟢 [ComposeDialog] Submitting ${mode}:`, data);
       sendEmailMutation.mutate(data, {
         onSuccess: () => {
+          console.log(`✅ [ComposeDialog] ${mode} submitted successfully`);
           form.reset();
           onOpenChange(false);
         },

@@ -54,12 +54,14 @@ export function useReplyEmail() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: ReplyEmailDto }) =>
-      emailService.replyEmail(id, data),
-    onSuccess: (_, variables) => {
+    mutationFn: ({ id, data }: { id: string; data: ReplyEmailDto }) => {
+      console.log(`🔵 [Frontend] Sending reply for email ID: ${id}`, { replyAll: data.replyAll, bodyLength: data.body.length });
+      return emailService.replyEmail(id, data);
+    },
+    onSuccess: (response, variables) => {
+      console.log(`✅ [Frontend] Reply sent successfully:`, response);
       queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
       queryClient.invalidateQueries({ queryKey: ['emails'] });
-      // Invalidate the specific email detail to refresh it
       queryClient.invalidateQueries({ queryKey: ['email', variables.id] });
       toast({
         title: 'Success',
@@ -67,6 +69,7 @@ export function useReplyEmail() {
       });
     },
     onError: (error: any) => {
+      console.log(`🔴 [Frontend] Reply failed:`, error.response?.data || error.message);
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to send reply',
