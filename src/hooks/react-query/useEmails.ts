@@ -56,9 +56,11 @@ export function useReplyEmail() {
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: ReplyEmailDto }) =>
       emailService.replyEmail(id, data),
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
       queryClient.invalidateQueries({ queryKey: ['emails'] });
+      // Invalidate the specific email detail to refresh it
+      queryClient.invalidateQueries({ queryKey: ['email', variables.id] });
       toast({
         title: 'Success',
         description: 'Reply sent successfully!',
