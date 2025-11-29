@@ -57,7 +57,7 @@ export function useReplyEmail() {
     mutationFn: ({ id, data }: { id: string; data: ReplyEmailDto }) => {
       return emailService.replyEmail(id, data);
     },
-    onSuccess: (response, variables) => {
+    onSuccess: (_response, variables) => {
       queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
       queryClient.invalidateQueries({ queryKey: ['emails'] });
       queryClient.invalidateQueries({ queryKey: ['email', variables.id] });
