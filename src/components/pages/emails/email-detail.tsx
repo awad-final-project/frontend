@@ -5,12 +5,11 @@ import {
   useDeleteEmail,
 } from "@/hooks/react-query/useEmails";
 import { Button } from "@/components/ui/button";
-import { Loader2, Star, Reply, ReplyAll, Forward, Trash2, Mail, X, ArrowLeft, ChevronDown } from "lucide-react";
+import { Loader2, Star, Reply, ReplyAll, Forward, Trash2, Mail, X, ArrowLeft } from "lucide-react";
 import { format } from "date-fns";
-import { Separator } from "@/components/ui/separator";
 import { ComposeDialog, ComposeMode } from "./compose-dialog";
 import { useState } from "react";
-import DOMPurify from 'isomorphic-dompurify';
+import DOMPurify from "isomorphic-dompurify";
 
 interface EmailDetailProps {
   emailId: string;
@@ -21,18 +20,63 @@ interface EmailDetailProps {
 
 // Sanitize HTML content - remove tracking pixels and malicious scripts
 function sanitizeEmailHtml(html: string): string {
-  if (!html) return '';
-  
+  if (!html) return "";
+
   // Remove tracking pixels and web beacons
-  let cleaned = html.replace(/<img[^>]*(?:src="[^"]*(?:gs-getmailtracker|mailtracker|pixel)[^"]*"[^>]*|[^>]*(?:width="0"|height="0")[^>]*)>/gi, "");
-  
+  let cleaned = html.replace(
+    /<img[^>]*(?:src="[^"]*(?:gs-getmailtracker|mailtracker|pixel)[^"]*"[^>]*|[^>]*(?:width="0"|height="0")[^>]*)>/gi,
+    ""
+  );
+
   // Sanitize with DOMPurify to prevent XSS
   const sanitized = DOMPurify.sanitize(cleaned, {
-    ALLOWED_TAGS: ['b', 'i', 'em', 'strong', 'a', 'p', 'br', 'div', 'span', 'ul', 'ol', 'li', 'img', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'code', 'pre', 'hr', 'table', 'thead', 'tbody', 'tr', 'td', 'th', 'font'],
-    ALLOWED_ATTR: ['href', 'src', 'alt', 'title', 'target', 'rel', 'style', 'color', 'face', 'size'],
+    ALLOWED_TAGS: [
+      "b",
+      "i",
+      "em",
+      "strong",
+      "a",
+      "p",
+      "br",
+      "div",
+      "span",
+      "ul",
+      "ol",
+      "li",
+      "img",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+      "blockquote",
+      "code",
+      "pre",
+      "hr",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "td",
+      "th",
+      "font",
+    ],
+    ALLOWED_ATTR: [
+      "href",
+      "src",
+      "alt",
+      "title",
+      "target",
+      "rel",
+      "style",
+      "color",
+      "face",
+      "size",
+    ],
     ALLOW_DATA_ATTR: false,
   });
-  
+
   return sanitized;
 }
 
@@ -104,7 +148,7 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
         <div className="mb-4 flex items-start justify-between gap-4">
           <div className="flex-1">
             <h2 className="mb-4 text-2xl font-semibold text-gray-900">{email.subject}</h2>
-            
+
             {/* Sender info - Gmail style */}
             <div className="mb-4 flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 text-sm font-medium text-white">
@@ -112,29 +156,27 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
               </div>
               <div className="flex-1">
                 <div className="font-medium text-gray-900">{email.from}</div>
-                <div className="text-xs text-gray-500">
-                  to {email.to.split(',')[0]}
-                </div>
+                <div className="text-xs text-gray-500">to {email.to.split(",")[0]}</div>
               </div>
               <div className="text-right text-xs text-gray-500">
                 {format(new Date(email.sentAt), "PPp")}
               </div>
             </div>
           </div>
-          
+
           <Button variant="ghost" size="icon" onClick={onClose} className="hidden md:flex">
             <X className="h-4 w-4" />
           </Button>
         </div>
 
         {onBack && (
-          <Button variant="ghost" size="icon" onClick={onBack} className="md:hidden mb-2">
+          <Button variant="ghost" size="icon" onClick={onBack} className="mb-2 md:hidden">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         )}
 
         {/* Action buttons */}
-        <div className="flex flex-wrap gap-2 pt-4 border-t">
+        <div className="flex flex-wrap gap-2 border-t pt-4">
           <Button variant="outline" size="sm" onClick={handleReply} className="gap-2">
             <Reply className="h-4 w-4" />
             Reply
@@ -188,15 +230,15 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
           {/* Email content container */}
           <div className="p-6">
             {/* Display HTML body if available, otherwise show plain text */}
-            <div 
+            <div
               className="email-body-content prose prose-sm max-w-none break-words text-gray-900"
               style={{
-                fontSize: '14px',
-                lineHeight: '1.6',
-                color: '#202124',
+                fontSize: "14px",
+                lineHeight: "1.6",
+                color: "#202124",
               }}
-              dangerouslySetInnerHTML={{ 
-                __html: sanitizeEmailHtml(email.body) 
+              dangerouslySetInnerHTML={{
+                __html: sanitizeEmailHtml(email.body),
               }}
             />
           </div>
