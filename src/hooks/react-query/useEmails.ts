@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { emailService, SendEmailDto } from '@/services/email';
+import { emailService, SendEmailDto, ReplyEmailDto } from '@/services/email';
 import { useToast } from '@/hooks/use-toast';
 
 export function useMailboxes() {
@@ -49,6 +49,33 @@ export function useSendEmail() {
   });
 }
 
+export function useReplyEmail() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: ReplyEmailDto }) => {
+      return emailService.replyEmail(id, data);
+    },
+    onSuccess: (_response, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+      queryClient.invalidateQueries({ queryKey: ['email', variables.id] });
+      toast({
+        title: 'Success',
+        description: 'Reply sent successfully!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to send reply',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
 export function useToggleStar() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
@@ -83,20 +110,16 @@ export function useMarkAsRead() {
     mutationFn: ({ id, isRead }: { id: string; isRead: boolean }) =>
       emailService.markAsRead(id, isRead),
     onMutate: async ({ id, isRead }) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['email', id] });
       await queryClient.cancelQueries({ queryKey: ['emails'] });
 
-      // Snapshot previous value
       const previousEmail = queryClient.getQueryData(['email', id]);
 
-      // Optimistically update email detail
       queryClient.setQueryData(['email', id], (old: any) => {
         if (!old) return old;
         return { ...old, isRead };
       });
 
-      // Optimistically update email lists
       queryClient.setQueriesData({ queryKey: ['emails'] }, (old: any) => {
         if (!old?.emails) return old;
         return {
@@ -110,7 +133,6 @@ export function useMarkAsRead() {
       return { previousEmail };
     },
     onError: (_err, { id }, context) => {
-      // Rollback on error
       if (context?.previousEmail) {
         queryClient.setQueryData(['email', id], context.previousEmail);
       }
