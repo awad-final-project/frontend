@@ -53,14 +53,14 @@ export function EmailList({ folder, selectedEmailId, onSelectEmail }: EmailListP
 
   if (!data || data.emails.length === 0) {
     return (
-      <div className="flex items-center justify-center p-8 text-muted-foreground">
+      <div className="flex flex-1 items-center justify-center p-8 text-muted-foreground">
         <p>No emails in this folder</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-y-auto" role="list">
+    <div className="flex-1 overflow-y-auto" role="list">
       {data.emails.map((email, index) => {
         const isSelected = selectedEmailId === email.id;
 
