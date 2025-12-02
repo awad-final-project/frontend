@@ -1,8 +1,17 @@
-import { useEmailDetail, useToggleStar, useMarkAsRead, useDeleteEmail } from '@/hooks/react-query/useEmails';
+import { useEmailDetail, useToggleStar, useMarkAsRead, useDeleteEmail, useDownloadAttachment } from '@/hooks/react-query/useEmails';
 import { Button } from '@/components/ui/button';
-import { Loader2, Star, Reply, ReplyAll, Forward, Trash2, Mail, X, ArrowLeft } from 'lucide-react';
+import { Loader2, Star, Reply, ReplyAll, Forward, Trash2, Mail, X, ArrowLeft, Paperclip, Download, FileIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { Separator } from '@/components/ui/separator';
+
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
 interface EmailDetailProps {
   emailId: string;
@@ -16,6 +25,7 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
   const toggleStarMutation = useToggleStar();
   const markAsReadMutation = useMarkAsRead();
   const deleteEmailMutation = useDeleteEmail();
+  const downloadAttachmentMutation = useDownloadAttachment();
 
   const handleToggleStar = () => {
     if (email) {
@@ -37,6 +47,10 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
         },
       });
     }
+  };
+
+  const handleDownloadAttachment = (attachmentId: string, filename: string) => {
+    downloadAttachmentMutation.mutate({ attachmentId, filename });
   };
 
   if (isLoading) {
@@ -143,6 +157,55 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
 
       {/* Body */}
       <div className="flex-1 overflow-y-auto p-6">
+        {/* Attachments */}
+        {email.attachments && email.attachments.length > 0 && (
+          <div className="mb-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Paperclip className="h-4 w-4 text-muted-foreground" />
+              <span className="font-medium text-sm">
+                Attachments ({email.attachments.length})
+              </span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {email.attachments.map((attachment) => (
+                <div
+                  key={attachment.id || attachment.attachmentId}
+                  className="flex items-center justify-between gap-2 p-3 bg-muted/50 rounded-lg border hover:bg-muted transition-colors"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <FileIcon className="h-8 w-8 text-muted-foreground flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate" title={attachment.filename || attachment.originalName}>
+                        {attachment.filename || attachment.originalName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatFileSize(attachment.size)}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDownloadAttachment(
+                      attachment.id || attachment.attachmentId,
+                      attachment.filename || attachment.originalName
+                    )}
+                    disabled={downloadAttachmentMutation.isPending}
+                    title="Download"
+                  >
+                    {downloadAttachmentMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <Separator className="mt-6" />
+          </div>
+        )}
+
         <div className="prose max-w-none">
           <div className="whitespace-pre-wrap">{email.body}</div>
         </div>

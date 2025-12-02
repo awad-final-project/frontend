@@ -1,5 +1,5 @@
 import { useEmailsByFolder } from '@/hooks/react-query/useEmails';
-import { Loader2, Star } from 'lucide-react';
+import { Loader2, Star, Paperclip } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
@@ -79,7 +79,7 @@ export function EmailList({ folder, selectedEmailId, onSelectEmail }: EmailListP
             aria-label={`Email from ${email.from}: ${email.subject}`}
             aria-selected={isSelected}
           >
-            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-start justify-between gap-2">
               <div className="flex-1 overflow-hidden">
                 <div className="flex items-center gap-2">
                   <span className={cn('truncate', !email.isRead && 'font-bold')}>
@@ -87,6 +87,9 @@ export function EmailList({ folder, selectedEmailId, onSelectEmail }: EmailListP
                   </span>
                   {email.isStarred && (
                     <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" aria-label="Starred" />
+                  )}
+                  {email.attachments && email.attachments.length > 0 && (
+                    <Paperclip className="h-3 w-3 text-muted-foreground" aria-label="Has attachments" />
                   )}
                 </div>
                 <p className={cn('truncate text-sm', !email.isRead && 'font-semibold')}>
