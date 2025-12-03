@@ -64,7 +64,7 @@ function formatFileSize(bytes: number): string {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 
-export function ComposeDialog({ open, onOpenChange }: ComposeDialogProps) {
+export function ComposeDialog({ open, onOpenChange, mode = "compose", initialData }: ComposeDialogProps) {
   const [attachments, setAttachments] = useState<AttachmentDto[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -80,6 +80,7 @@ export function ComposeDialog({ open, onOpenChange }: ComposeDialogProps) {
   });
 
   const sendEmailMutation = useSendEmail();
+  const replyEmailMutation = useReplyEmail();
   const uploadAttachmentMutation = useUploadAttachment();
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -122,29 +123,13 @@ export function ComposeDialog({ open, onOpenChange }: ComposeDialogProps) {
     setAttachments((prev) => prev.filter((a) => a.attachmentId !== attachmentId));
   };
 
-  const onSubmit = (data: FormInputs) => {
-    sendEmailMutation.mutate(
-      {
-        ...data,
-        attachments: attachments.length > 0 ? attachments : undefined,
-      },
-      {
-        onSuccess: () => {
-          form.reset();
-          setAttachments([]);
-          onOpenChange(false);
-        },
-      },
-    );
-  };
-
   const handleClose = (open: boolean) => {
     if (!open) {
       form.reset();
       setAttachments([]);
     }
     onOpenChange(open);
-  const replyEmailMutation = useReplyEmail();
+  };
 
   useEffect(() => {
     if (open && initialData?.email) {
@@ -218,16 +203,40 @@ export function ComposeDialog({ open, onOpenChange }: ComposeDialogProps) {
               form.reset();
               onOpenChange(false);
             },
+  const onSubmit = (data: FormInputs) => {
+    if (mode === "reply" || mode === "replyAll") {
+      if (initialData?.email) {
+        replyEmailMutation.mutate(
+          {
+            id: initialData.email.id,
+            data: {
+              body: data.body,
+              replyAll: mode === "replyAll",
+            },
+          },
+          {
+            onSuccess: () => {
+              form.reset();
+              setAttachments([]);
+              onOpenChange(false);
+            },
           }
         );
       }
     } else {
-      sendEmailMutation.mutate(data, {
-        onSuccess: () => {
-          form.reset();
-          onOpenChange(false);
+      sendEmailMutation.mutate(
+        {
+          ...data,
+          attachments: attachments.length > 0 ? attachments : undefined,
         },
-      });
+        {
+          onSuccess: () => {
+            form.reset();
+            setAttachments([]);
+            onOpenChange(false);
+          },
+        },
+      );
     }
   };
 
@@ -245,22 +254,6 @@ export function ComposeDialog({ open, onOpenChange }: ComposeDialogProps) {
   };
 
   const isLoading = sendEmailMutation.isPending || replyEmailMutation.isPending;
-
-  return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>{getTitle()}</DialogTitle>
-        </DialogHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="to"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>To</FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -357,13 +350,6 @@ export function ComposeDialog({ open, onOpenChange }: ComposeDialogProps) {
                   <Paperclip className="mr-2 h-4 w-4" />
                 )}
                 {isUploading ? 'Uploading...' : 'Attach Files'}
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isLoading}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {mode === "reply" || mode === "replyAll" ? "Reply" : "Send"}
               </Button>
 
               <div className="flex gap-2">
