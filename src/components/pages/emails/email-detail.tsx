@@ -101,7 +101,11 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
   };
 
   const handleDownloadAttachment = (attachmentId: string, filename: string) => {
-    downloadAttachmentMutation.mutate({ attachmentId, filename });
+    downloadAttachmentMutation.mutate({ 
+      attachmentId, 
+      filename,
+      emailId: email?.id // Pass emailId for Gmail attachments
+    });
   };
 
   const handleReply = () => {

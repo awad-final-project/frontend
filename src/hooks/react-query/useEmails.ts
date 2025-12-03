@@ -208,8 +208,8 @@ export function useDownloadAttachment() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: ({ attachmentId, filename }: { attachmentId: string; filename: string }) =>
-      emailService.downloadAttachment(attachmentId, filename),
+    mutationFn: ({ attachmentId, filename, emailId }: { attachmentId: string; filename: string; emailId?: string }) =>
+      emailService.downloadAttachment(attachmentId, filename, emailId),
     onError: (error: any) => {
       toast({
         title: 'Error',
