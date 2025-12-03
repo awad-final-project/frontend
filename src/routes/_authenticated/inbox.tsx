@@ -28,6 +28,8 @@ function InboxPage() {
   const [isComposeOpen, setIsComposeOpen] = useState(false);
   const [isMobileDetailView, setIsMobileDetailView] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
   const { refetch: refetchMailboxes } = useMailboxes();
   const { data: userProfile } = useUserProfile();
   const signOutMutation = useSignOut();
@@ -153,6 +155,7 @@ function InboxPage() {
               setSelectedEmailId(null);
               setIsMobileDetailView(false);
               setIsMobileSidebarOpen(false);
+              setCurrentPage(1);
             }}
           />
         </div>
@@ -174,6 +177,13 @@ function InboxPage() {
             folder={selectedFolder}
             selectedEmailId={selectedEmailId}
             onSelectEmail={handleSelectEmail}
+            page={currentPage}
+            pageSize={pageSize}
+            onPageChange={setCurrentPage}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
           />
         </div>
 
