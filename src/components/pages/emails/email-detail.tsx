@@ -273,7 +273,7 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
   <div className="email-content-wrapper">
     <style>{`
       .email-content-wrapper {
-        max-width: 100%;
+        width: 100%;
         overflow-x: auto;
       }
       
@@ -286,70 +286,61 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
         overflow-wrap: break-word;
       }
       
-      /* Reset email client styles */
+      /* Let HTML render naturally - minimal constraints */
       .email-body-content * {
         max-width: 100%;
+        box-sizing: border-box;
       }
       
-      /* Typography */
+      /* Remove default borders from divs */
+      .email-body-content div {
+        border: none !important;
+      }
+      
+      /* Typography - preserve email styles */
       .email-body-content h1, .email-body-content h2, .email-body-content h3,
       .email-body-content h4, .email-body-content h5, .email-body-content h6 {
-        margin-top: 1.5em;
+        margin-top: 0.5em;
         margin-bottom: 0.5em;
         font-weight: 600;
-        line-height: 1.3;
       }
       
-      .email-body-content h1 { font-size: 1.8em; }
-      .email-body-content h2 { font-size: 1.5em; }
-      .email-body-content h3 { font-size: 1.3em; }
-      
       .email-body-content p {
-        margin: 0.8em 0;
+        margin: 0.5em 0;
       }
       
       .email-body-content a {
         color: #1a73e8;
         text-decoration: none;
-        cursor: pointer;
       }
       
       .email-body-content a:hover {
         text-decoration: underline;
       }
       
-      /* Images - Responsive and safe */
+      /* Images - Responsive */
       .email-body-content img {
         max-width: 100%;
         height: auto;
-        display: block;
-        margin: 1em 0;
-        border-radius: 4px;
       }
       
       /* Lists */
       .email-body-content ul, .email-body-content ol {
-        margin: 1em 0;
+        margin: 0.5em 0;
         padding-left: 2em;
       }
       
-      .email-body-content li {
-        margin: 0.5em 0;
-      }
-      
-      /* Blockquotes */
+      /* Blockquotes - subtle styling */
       .email-body-content blockquote {
         margin: 1em 0;
-        padding: 0.5em 1em;
-        border-left: 4px solid #dadce0;
-        background-color: #f8f9fa;
+        padding-left: 1em;
+        border-left: 3px solid #dadce0;
         color: #5f6368;
       }
       
       /* Code blocks */
       .email-body-content pre {
         background-color: #f8f9fa;
-        border: 1px solid #dadce0;
         border-radius: 4px;
         padding: 1em;
         overflow-x: auto;
@@ -370,39 +361,18 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
         padding: 0;
       }
       
-      /* Tables */
+      /* Tables - preserve email table styling */
       .email-body-content table {
         border-collapse: collapse;
-        width: 100%;
         margin: 1em 0;
-        overflow-x: auto;
-        display: block;
       }
       
       .email-body-content table th,
       .email-body-content table td {
-        border: 1px solid #dadce0;
         padding: 8px 12px;
-        text-align: left;
       }
       
-      .email-body-content table th {
-        background-color: #f8f9fa;
-        font-weight: 600;
-      }
-      
-      .email-body-content table tr:nth-child(even) {
-        background-color: #fafafa;
-      }
-      
-      /* Horizontal rule */
-      .email-body-content hr {
-        border: none;
-        border-top: 1px solid #dadce0;
-        margin: 2em 0;
-      }
-      
-      /* Gmail-specific quoted text */
+      /* Gmail quoted text */
       .email-body-content .gmail_quote {
         margin: 1em 0;
         padding-left: 1em;
@@ -410,7 +380,7 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
         color: #5f6368;
       }
       
-      /* Preserve whitespace for plain text emails */
+      /* Plain text emails */
       .email-body-plaintext {
         white-space: pre-wrap;
         font-family: monospace;

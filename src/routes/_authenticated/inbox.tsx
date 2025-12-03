@@ -165,7 +165,7 @@ function InboxPage() {
 
         {/* Column 2: Email List - 40% width on desktop */}
         <div className={`flex h-full w-full flex-shrink-0 flex-col border-r bg-background md:w-[40%] ${isMobileDetailView ? 'hidden md:block' : 'block'}`}>
-          <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
+          <div className="flex-shrink-0 flex items-center justify-between border-b bg-muted/30 px-4 py-3">
             <h2 className="text-lg font-semibold capitalize">{selectedFolder}</h2>
             <Button
               variant="ghost"
@@ -176,7 +176,8 @@ function InboxPage() {
               <RefreshCw className="h-4 w-4" />
             </Button>
           </div>
-          <EmailList
+          <div className="flex-1 flex flex-col min-h-0">
+            <EmailList
             folder={selectedFolder}
             selectedEmailId={selectedEmailId}
             onSelectEmail={handleSelectEmail}
@@ -187,7 +188,8 @@ function InboxPage() {
               setPageSize(size);
               setCurrentPage(1);
             }}
-          />
+            />
+          </div>
         </div>
 
         {/* Column 3: Email Detail - 40% width on desktop */}
