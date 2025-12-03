@@ -27,59 +27,43 @@ interface EmailDetailProps {
 function sanitizeEmailHtml(html: string): string {
   if (!html) return "";
 
-  // Remove tracking pixels and web beacons
+  // Remove tracking pixels and web beacons (1x1 images)
   let cleaned = html.replace(
-    /<img[^>]*(?:src="[^"]*(?:gs-getmailtracker|mailtracker|pixel)[^"]*"[^>]*|[^>]*(?:width="0"|height="0")[^>]*)>/gi,
+    /<img[^>]*(?:src="[^"]*(?:gs-getmailtracker|mailtracker|pixel|beacon)[^"]*"[^>]*|[^>]*(?:width=["']?[01]["']?|height=["']?[01]["']?)[^>]*)>/gi,
     ""
   );
+
+  // Remove potentially dangerous script-bearing elements
+  cleaned = cleaned.replace(/<script[^>]*>.*?<\/script>/gis, "");
+  cleaned = cleaned.replace(/<iframe[^>]*>.*?<\/iframe>/gis, "");
+  cleaned = cleaned.replace(/<object[^>]*>.*?<\/object>/gis, "");
+  cleaned = cleaned.replace(/<embed[^>]*>/gi, "");
 
   // Sanitize with DOMPurify to prevent XSS
   const sanitized = DOMPurify.sanitize(cleaned, {
     ALLOWED_TAGS: [
-      "b",
-      "i",
-      "em",
-      "strong",
-      "a",
-      "p",
-      "br",
-      "div",
-      "span",
-      "ul",
-      "ol",
-      "li",
+      "b", "i", "em", "strong", "u", "s", "strike",
+      "a", "p", "br", "div", "span",
+      "ul", "ol", "li",
       "img",
-      "h1",
-      "h2",
-      "h3",
-      "h4",
-      "h5",
-      "h6",
-      "blockquote",
-      "code",
-      "pre",
+      "h1", "h2", "h3", "h4", "h5", "h6",
+      "blockquote", "code", "pre",
       "hr",
-      "table",
-      "thead",
-      "tbody",
-      "tr",
-      "td",
-      "th",
-      "font",
+      "table", "thead", "tbody", "tfoot", "tr", "td", "th", "caption",
+      "font", "center",
+      "sup", "sub",
     ],
     ALLOWED_ATTR: [
-      "href",
-      "src",
-      "alt",
-      "title",
-      "target",
-      "rel",
-      "style",
-      "color",
-      "face",
-      "size",
+      "href", "target", "rel",
+      "src", "alt", "title", "width", "height",
+      "style", "class",
+      "color", "face", "size",
+      "align", "valign",
+      "border", "cellpadding", "cellspacing",
     ],
     ALLOW_DATA_ATTR: false,
+    // Allow base64 images and HTTPS images only
+    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|data|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
   });
 
   return sanitized;
@@ -286,24 +270,168 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
   )}
 
   {/* Email Body Content */}
-  <div className="prose max-w-none">
-    <div className="whitespace-pre-wrap">
-      {email.body ? (
+  <div className="email-content-wrapper">
+    <style>{`
+      .email-content-wrapper {
+        max-width: 100%;
+        overflow-x: auto;
+      }
+      
+      .email-body-content {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        font-size: 14px;
+        line-height: 1.6;
+        color: #202124;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+      }
+      
+      /* Reset email client styles */
+      .email-body-content * {
+        max-width: 100%;
+      }
+      
+      /* Typography */
+      .email-body-content h1, .email-body-content h2, .email-body-content h3,
+      .email-body-content h4, .email-body-content h5, .email-body-content h6 {
+        margin-top: 1.5em;
+        margin-bottom: 0.5em;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+      
+      .email-body-content h1 { font-size: 1.8em; }
+      .email-body-content h2 { font-size: 1.5em; }
+      .email-body-content h3 { font-size: 1.3em; }
+      
+      .email-body-content p {
+        margin: 0.8em 0;
+      }
+      
+      .email-body-content a {
+        color: #1a73e8;
+        text-decoration: none;
+        cursor: pointer;
+      }
+      
+      .email-body-content a:hover {
+        text-decoration: underline;
+      }
+      
+      /* Images - Responsive and safe */
+      .email-body-content img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+        margin: 1em 0;
+        border-radius: 4px;
+      }
+      
+      /* Lists */
+      .email-body-content ul, .email-body-content ol {
+        margin: 1em 0;
+        padding-left: 2em;
+      }
+      
+      .email-body-content li {
+        margin: 0.5em 0;
+      }
+      
+      /* Blockquotes */
+      .email-body-content blockquote {
+        margin: 1em 0;
+        padding: 0.5em 1em;
+        border-left: 4px solid #dadce0;
+        background-color: #f8f9fa;
+        color: #5f6368;
+      }
+      
+      /* Code blocks */
+      .email-body-content pre {
+        background-color: #f8f9fa;
+        border: 1px solid #dadce0;
+        border-radius: 4px;
+        padding: 1em;
+        overflow-x: auto;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 13px;
+      }
+      
+      .email-body-content code {
+        background-color: #f8f9fa;
+        padding: 0.2em 0.4em;
+        border-radius: 3px;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 13px;
+      }
+      
+      .email-body-content pre code {
+        background-color: transparent;
+        padding: 0;
+      }
+      
+      /* Tables */
+      .email-body-content table {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 1em 0;
+        overflow-x: auto;
+        display: block;
+      }
+      
+      .email-body-content table th,
+      .email-body-content table td {
+        border: 1px solid #dadce0;
+        padding: 8px 12px;
+        text-align: left;
+      }
+      
+      .email-body-content table th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+      }
+      
+      .email-body-content table tr:nth-child(even) {
+        background-color: #fafafa;
+      }
+      
+      /* Horizontal rule */
+      .email-body-content hr {
+        border: none;
+        border-top: 1px solid #dadce0;
+        margin: 2em 0;
+      }
+      
+      /* Gmail-specific quoted text */
+      .email-body-content .gmail_quote {
+        margin: 1em 0;
+        padding-left: 1em;
+        border-left: 2px solid #dadce0;
+        color: #5f6368;
+      }
+      
+      /* Preserve whitespace for plain text emails */
+      .email-body-plaintext {
+        white-space: pre-wrap;
+        font-family: monospace;
+        font-size: 13px;
+      }
+    `}</style>
+    
+    {email.body ? (
+      email.body.includes('<') && email.body.includes('>') ? (
         <div
-          className="email-body-content prose prose-sm max-w-none break-words text-gray-900"
-          style={{
-            fontSize: "14px",
-            lineHeight: "1.6",
-            color: "#202124",
-          }}
+          className="email-body-content"
           dangerouslySetInnerHTML={{
-            __html: sanitizeEmailHtml(email.body), // Assuming you sanitize the HTML content
+            __html: sanitizeEmailHtml(email.body),
           }}
         />
       ) : (
-        <div>{email.body}</div> // If body is plain text
-      )}
-    </div>
+        <div className="email-body-plaintext">{email.body}</div>
+      )
+    ) : (
+      <p className="text-muted-foreground italic">No content</p>
+    )}
   </div>
 </div>
 

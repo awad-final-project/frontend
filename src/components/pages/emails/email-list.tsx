@@ -71,9 +71,11 @@ export function EmailList({
   const currentTotal = data?.total || 0;
   const startItem = currentTotal > 0 ? (page - 1) * pageSize + 1 : 0;
   const endItem = Math.min(page * pageSize, currentTotal);
+  const showPagination = !isLoading && data && data.emails.length > 0 && onPageChange;
 
   return (
     <div className="flex h-full flex-col">
+      {/* Email List - scrollable area */}
       <div ref={listRef} className="flex-1 overflow-y-auto" role="list">
         {isLoading && (
           <div className="flex items-center justify-center p-8">
@@ -141,9 +143,9 @@ export function EmailList({
           })}
       </div>
 
-      {/* Pagination Controls */}
-      {!isLoading && data && data.emails.length > 0 && onPageChange && (
-        <div className="border-t bg-muted/30 p-3">
+      {/* Pagination Controls - Fixed at bottom, outside scroll area */}
+      {showPagination && (
+        <div className="flex-shrink-0 border-t bg-background p-3">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             {/* Items count */}
             <div className="text-xs text-muted-foreground">
