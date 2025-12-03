@@ -193,7 +193,7 @@ function InboxPage() {
           </Button>
 
           {/* Theme Toggle */}
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
 
           {/* User Menu */}
           <DropdownMenu>
@@ -328,11 +328,11 @@ function InboxPage() {
             </div>
             
             {/* Search and Filters */}
-            <EmailFilters
+            {/* <EmailFilters
               filters={filters}
               onFiltersChange={handleFiltersChange}
               onClearFilters={handleClearFilters}
-            />
+            /> */}
             
             <div className="flex-1 flex flex-col min-h-0">
               <EmailList

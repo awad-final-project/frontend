@@ -457,7 +457,7 @@ export function ComposeDialog({ open, onOpenChange, mode = "compose", draftId, i
                 </Button>
 
                 {/* Save Draft button */}
-                <Button
+                {/* <Button
                   type="button"
                   variant="outline"
                   size="sm"
@@ -470,7 +470,7 @@ export function ComposeDialog({ open, onOpenChange, mode = "compose", draftId, i
                     <Save className="mr-2 h-4 w-4" />
                   )}
                   Save
-                </Button>
+                </Button> */}
 
                 {/* Auto-save indicator */}
                 {lastSaved && (
