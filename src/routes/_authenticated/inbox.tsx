@@ -4,8 +4,8 @@ import { MailboxSidebar } from '@/components/pages/emails/mailbox-sidebar';
 import { EmailList } from '@/components/pages/emails/email-list';
 import { EmailDetail } from '@/components/pages/emails/email-detail';
 import { KeyboardShortcutsHelp } from '@/components/pages/emails/keyboard-shortcuts-help';
-import { EmailFilters, EmailFilterValues } from '@/components/pages/emails/email-filters';
-import { ThemeToggle } from '@/components/theme-toggle';
+import { EmailFilterValues } from '@/components/pages/emails/email-filters';
+// import { ThemeToggle } from '@/components/theme-toggle';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { PenSquare, RefreshCw, Mail, LogOut, User, Settings, Shield, Menu } from 'lucide-react';
@@ -36,7 +36,7 @@ function InboxPage() {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
-  const [filters, setFilters] = useState<EmailFilterValues>({});
+  const [filters, _] = useState<EmailFilterValues>({});
   const { refetch: refetchMailboxes } = useMailboxes();
   const { data: userProfile } = useUserProfile();
   const signOutMutation = useSignOut();
@@ -124,15 +124,15 @@ function InboxPage() {
     refetchMailboxes();
   };
 
-  const handleFiltersChange = (newFilters: EmailFilterValues) => {
-    setFilters(newFilters);
-    setCurrentPage(1); // Reset to first page when filters change
-  };
+  // const handleFiltersChange = (newFilters: EmailFilterValues) => {
+  //   setFilters(newFilters);
+  //   setCurrentPage(1); // Reset to first page when filters change
+  // };
 
-  const handleClearFilters = () => {
-    setFilters({});
-    setCurrentPage(1);
-  };
+  // const handleClearFilters = () => {
+  //   setFilters({});
+  //   setCurrentPage(1);
+  // };
 
   const handleSelectEmail = (emailId: string) => {
     // Mark as read immediately with optimistic update

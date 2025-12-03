@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { useSendEmail, useUploadAttachment } from '@/hooks/react-query/useEmails';
 import { useCreateDraft, useUpdateDraft } from '@/hooks/react-query/useDrafts';
-import { Loader2, Paperclip, X, FileIcon, Save } from 'lucide-react';
+import { Loader2, Paperclip, X, FileIcon } from 'lucide-react';
 import { useRef, useState, useEffect } from 'react';
 import { AttachmentDto, EmailDetail } from '@/services/email';
 import { useToast } from '@/hooks/use-toast';
@@ -189,39 +189,39 @@ export function ComposeDialog({ open, onOpenChange, mode = "compose", draftId, i
   }, [open, currentDraftId, form, createDraftMutation, updateDraftMutation]);
 
   // Manual save draft
-  const handleSaveDraft = async () => {
-    const values = form.getValues();
+  // const handleSaveDraft = async () => {
+  //   const values = form.getValues();
     
-    try {
-      const draftData = {
-        to: values.to || '',
-        subject: values.subject || '',
-        body: values.body || '',
-      };
+  //   try {
+  //     const draftData = {
+  //       to: values.to || '',
+  //       subject: values.subject || '',
+  //       body: values.body || '',
+  //     };
 
-      if (currentDraftId) {
-        await updateDraftMutation.mutateAsync({
-          draftId: currentDraftId,
-          updateDto: draftData,
-        });
-      } else {
-        const draft = await createDraftMutation.mutateAsync(draftData);
-        setCurrentDraftId(draft._id);
-      }
+  //     if (currentDraftId) {
+  //       await updateDraftMutation.mutateAsync({
+  //         draftId: currentDraftId,
+  //         updateDto: draftData,
+  //       });
+  //     } else {
+  //       const draft = await createDraftMutation.mutateAsync(draftData);
+  //       setCurrentDraftId(draft._id);
+  //     }
       
-      setLastSaved(new Date());
-      toast({
-        title: 'Draft saved',
-        description: 'Your draft has been saved successfully',
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Failed to save draft',
-        description: error.message || 'An error occurred',
-        variant: 'destructive',
-      });
-    }
-  };
+  //     setLastSaved(new Date());
+  //     toast({
+  //       title: 'Draft saved',
+  //       description: 'Your draft has been saved successfully',
+  //     });
+  //   } catch (error: any) {
+  //     toast({
+  //       title: 'Failed to save draft',
+  //       description: error.message || 'An error occurred',
+  //       variant: 'destructive',
+  //     });
+  //   }
+  // };
 
   useEffect(() => {
     if (open && initialData?.email) {
