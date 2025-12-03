@@ -1,22 +1,16 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useSendEmail, useReplyEmail } from "@/hooks/react-query/useEmails";
-import { Loader2 } from "lucide-react";
-import { useEffect } from "react";
-import { EmailDetail } from "@/services/email";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import * as z from 'zod';
+import { useSendEmail, useReplyEmail, useUploadAttachment } from '@/hooks/react-query/useEmails';
+import { Loader2, Paperclip, X, FileIcon } from 'lucide-react';
+import { useRef, useState, useEffect } from 'react';
+import { AttachmentDto, EmailDetail } from '@/services/email';
+import { useToast } from '@/hooks/use-toast';
 
 function extractEmailAddress(emailString: string): string {
   if (!emailString) return "";
@@ -61,12 +55,21 @@ interface ComposeDialogProps {
   };
 }
 
-export function ComposeDialog({
-  open,
-  onOpenChange,
-  mode = "compose",
-  initialData,
-}: ComposeDialogProps) {
+// Helper function to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+export function ComposeDialog({ open, onOpenChange }: ComposeDialogProps) {
+  const [attachments, setAttachments] = useState<AttachmentDto[]>([]);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
+
   const form = useForm<FormInputs>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,6 +80,70 @@ export function ComposeDialog({
   });
 
   const sendEmailMutation = useSendEmail();
+  const uploadAttachmentMutation = useUploadAttachment();
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files || files.length === 0) return;
+
+    setIsUploading(true);
+    
+    try {
+      for (const file of Array.from(files)) {
+        // Check file size (max 25MB)
+        if (file.size > 25 * 1024 * 1024) {
+          toast({
+            title: 'Error',
+            description: `File "${file.name}" exceeds the 25MB limit`,
+            variant: 'destructive',
+          });
+          continue;
+        }
+
+        const result = await uploadAttachmentMutation.mutateAsync(file);
+        setAttachments((prev) => [...prev, result]);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Upload Failed',
+        description: error.response?.data?.message || 'Failed to upload attachment',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploading(false);
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const removeAttachment = (attachmentId: string) => {
+    setAttachments((prev) => prev.filter((a) => a.attachmentId !== attachmentId));
+  };
+
+  const onSubmit = (data: FormInputs) => {
+    sendEmailMutation.mutate(
+      {
+        ...data,
+        attachments: attachments.length > 0 ? attachments : undefined,
+      },
+      {
+        onSuccess: () => {
+          form.reset();
+          setAttachments([]);
+          onOpenChange(false);
+        },
+      },
+    );
+  };
+
+  const handleClose = (open: boolean) => {
+    if (!open) {
+      form.reset();
+      setAttachments([]);
+    }
+    onOpenChange(open);
   const replyEmailMutation = useReplyEmail();
 
   useEffect(() => {
@@ -180,7 +247,7 @@ export function ComposeDialog({
   const isLoading = sendEmailMutation.isPending || replyEmailMutation.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>{getTitle()}</DialogTitle>
@@ -235,6 +302,61 @@ export function ComposeDialog({
               )}
             />
 
+            {/* Attachments Section */}
+            {attachments.length > 0 && (
+              <div className="space-y-2">
+                <FormLabel>Attachments</FormLabel>
+                <div className="flex flex-wrap gap-2">
+                  {attachments.map((attachment) => (
+                    <div
+                      key={attachment.attachmentId}
+                      className="flex items-center gap-2 bg-muted px-3 py-2 rounded-md text-sm"
+                    >
+                      <FileIcon className="h-4 w-4 text-muted-foreground" />
+                      <span className="max-w-[150px] truncate" title={attachment.filename}>
+                        {attachment.filename}
+                      </span>
+                      <span className="text-muted-foreground text-xs">
+                        ({formatFileSize(attachment.size)})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => removeAttachment(attachment.attachmentId)}
+                        className="text-muted-foreground hover:text-destructive transition-colors"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Hidden file input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              onChange={handleFileSelect}
+              className="hidden"
+              accept="*/*"
+            />
+
+            <div className="flex justify-between items-center">
+              {/* Attachment button */}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isUploading}
+              >
+                {isUploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Paperclip className="mr-2 h-4 w-4" />
+                )}
+                {isUploading ? 'Uploading...' : 'Attach Files'}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 Cancel
@@ -243,6 +365,22 @@ export function ComposeDialog({
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {mode === "reply" || mode === "replyAll" ? "Reply" : "Send"}
               </Button>
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleClose(false)}
+                >
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={sendEmailMutation.isPending || isUploading}>
+                  {sendEmailMutation.isPending && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Send
+                </Button>
+              </div>
             </div>
           </form>
         </Form>

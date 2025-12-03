@@ -7,6 +7,24 @@ export interface Mailbox {
   icon: string;
 }
 
+export interface Attachment {
+  id: string;
+  attachmentId: string;
+  filename: string;
+  originalName: string;
+  mimeType: string;
+  size: number;
+  s3Key: string;
+}
+
+export interface AttachmentDto {
+  attachmentId: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  s3Key: string;
+}
+
 export interface Email {
   id: string;
   from: string;
@@ -17,11 +35,13 @@ export interface Email {
   isStarred: boolean;
   sentAt: string;
   folder: string;
+  attachments?: Attachment[];
 }
 
 export interface EmailDetail extends Email {
   body: string;
   readAt: string;
+  attachments?: Attachment[];
 }
 
 export interface EmailListResponse {
@@ -36,6 +56,15 @@ export interface SendEmailDto {
   to: string;
   subject: string;
   body: string;
+  attachments?: AttachmentDto[];
+}
+
+export interface UploadAttachmentResponse {
+  attachmentId: string;
+  filename: string;
+  mimeType: string;
+  size: number;
+  s3Key: string;
 }
 
 export interface ReplyEmailDto {
@@ -92,6 +121,62 @@ export const emailService = {
 
   async seedMockEmails(): Promise<{ message: string }> {
     const response = await api.post('emails/seed');
+    return response.data;
+  },
+
+  // Attachment functions
+  async uploadAttachment(file: File): Promise<UploadAttachmentResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post('emails/attachments/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  async uploadMultipleAttachments(files: File[]): Promise<UploadAttachmentResponse[]> {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    const response = await api.post('emails/attachments/upload-multiple', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  },
+
+  async getAttachmentDownloadUrl(attachmentId: string): Promise<{ url: string; expiresIn: number }> {
+    const response = await api.get(`emails/attachments/${attachmentId}/url`);
+    return response.data;
+  },
+
+  async downloadAttachment(attachmentId: string, filename: string): Promise<void> {
+    const response = await api.get(`emails/attachments/${attachmentId}/download`, {
+      responseType: 'blob',
+    });
+    
+    // Create blob link to download
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', filename);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+
+  async deleteAttachment(attachmentId: string): Promise<{ message: string }> {
+    const response = await api.delete(`emails/attachments/${attachmentId}`);
+    return response.data;
+  },
+
+  async getEmailAttachments(emailId: string): Promise<Attachment[]> {
+    const response = await api.get(`emails/${emailId}/attachments`);
     return response.data;
   },
 };

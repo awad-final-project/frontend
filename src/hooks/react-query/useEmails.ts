@@ -191,3 +191,37 @@ export function useSeedMockEmails() {
     },
   });
 }
+
+export function useUploadAttachment() {
+  return useMutation({
+    mutationFn: (file: File) => emailService.uploadAttachment(file),
+  });
+}
+
+export function useUploadMultipleAttachments() {
+  return useMutation({
+    mutationFn: (files: File[]) => emailService.uploadMultipleAttachments(files),
+  });
+}
+
+export function useDownloadAttachment() {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ attachmentId, filename }: { attachmentId: string; filename: string }) =>
+      emailService.downloadAttachment(attachmentId, filename),
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to download attachment',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useGetAttachmentDownloadUrl() {
+  return useMutation({
+    mutationFn: (attachmentId: string) => emailService.getAttachmentDownloadUrl(attachmentId),
+  });
+}
