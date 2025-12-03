@@ -23,7 +23,8 @@ type SignUpParams = {
 export type AuthUser = {
   username: string;
   email: string;
-  role?: string;
+  role: string;
+  picture?: string;
 };
 
 // Check if using cookie-based auth

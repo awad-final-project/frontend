@@ -89,9 +89,18 @@ function InboxPage() {
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative h-10 w-10 rounded-full">
-                <div className="flex h-full w-full items-center justify-center rounded-full bg-primary/10">
-                  <User className="h-5 w-5 text-primary" />
-                </div>
+                {userProfile?.picture ? (
+                  <img
+                    src={userProfile.picture}
+                    alt={userProfile.username}
+                    className="h-full w-full rounded-full object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-primary/10">
+                    <User className="h-5 w-5 text-primary" />
+                  </div>
+                )}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
@@ -164,7 +173,7 @@ function InboxPage() {
         </div>
 
         {/* Column 2: Email List - 40% width on desktop */}
-        <div className={`flex h-full w-full flex-shrink-0 flex-col border-r bg-background md:w-[40%] ${isMobileDetailView ? 'hidden md:block' : 'block'}`}>
+        <div className={`flex h-full w-full flex-shrink-0 flex-col border-r bg-background md:w-[40%] ${isMobileDetailView ? 'hidden md:flex' : 'flex'}`}>
           <div className="flex-shrink-0 flex items-center justify-between border-b bg-muted/30 px-4 py-3">
             <h2 className="text-lg font-semibold capitalize">{selectedFolder}</h2>
             <Button
