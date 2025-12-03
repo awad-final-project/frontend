@@ -6,7 +6,7 @@ import { EmailDetail } from '@/components/pages/emails/email-detail';
 import { Button } from '@/components/ui/button';
 import { PenSquare, RefreshCw, Mail, LogOut, User, Settings, Shield, Menu } from 'lucide-react';
 import { ComposeDialog } from '@/components/pages/emails/compose-dialog';
-import { useMailboxes } from '@/hooks/react-query/useEmails';
+import { useMailboxes, useMarkAsRead } from '@/hooks/react-query/useEmails';
 import { useSignOut, useUserProfile } from '@/hooks/react-query/useAuth';
 import { useUserRole } from '@/hooks/useRole';
 import {
@@ -33,6 +33,7 @@ function InboxPage() {
   const { refetch: refetchMailboxes } = useMailboxes();
   const { data: userProfile } = useUserProfile();
   const signOutMutation = useSignOut();
+  const markAsReadMutation = useMarkAsRead();
   const userRole = useUserRole();
 
   const handleRefresh = () => {
@@ -40,6 +41,8 @@ function InboxPage() {
   };
 
   const handleSelectEmail = (emailId: string) => {
+    // Mark as read immediately with optimistic update
+    markAsReadMutation.mutate({ id: emailId, isRead: true });
     setSelectedEmailId(emailId);
     setIsMobileDetailView(true);
   };
