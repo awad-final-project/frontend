@@ -62,8 +62,8 @@ function sanitizeEmailHtml(html: string): string {
       "border", "cellpadding", "cellspacing",
     ],
     ALLOW_DATA_ATTR: false,
-    // Allow base64 images and HTTPS images only
-    ALLOWED_URI_REGEXP: /^(?:(?:(?:f|ht)tps?|mailto|tel|callto|cid|data|blob):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+    // Allow all safe URIs including http/https/data for images
+    ADD_ATTR: ['target'],
   });
 
   return sanitized;
@@ -318,10 +318,17 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
         text-decoration: underline;
       }
       
-      /* Images - Responsive */
+      /* Images - Responsive and allow external sources */
       .email-body-content img {
         max-width: 100%;
         height: auto;
+        display: inline-block;
+        vertical-align: middle;
+      }
+      
+      /* Allow images to load from any source */
+      .email-body-content img[src] {
+        content-visibility: auto;
       }
       
       /* Lists */
