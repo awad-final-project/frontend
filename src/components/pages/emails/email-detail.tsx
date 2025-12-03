@@ -101,6 +101,12 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
   };
 
   const handleDownloadAttachment = (attachmentId: string, filename: string) => {
+    console.log('📎 Download attachment:', { 
+      attachmentId, 
+      filename,
+      emailId: email?.id,
+      allAttachments: email?.attachments 
+    });
     downloadAttachmentMutation.mutate({ 
       attachmentId, 
       filename,
