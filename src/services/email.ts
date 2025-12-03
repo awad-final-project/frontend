@@ -74,6 +74,15 @@ export interface ReplyEmailDto {
   replyAll?: boolean;
 }
 
+export interface EmailFilters {
+  search?: string;
+  from?: string;
+  unread?: boolean;
+  starred?: boolean;
+  startDate?: Date;
+  endDate?: Date;
+}
+
 export const emailService = {
   async getMailboxes(): Promise<Mailbox[]> {
     const response = await api.get('emails/mailboxes');
@@ -84,10 +93,20 @@ export const emailService = {
     folder: string,
     page: number = 1,
     limit: number = 50,
+    filters?: EmailFilters,
   ): Promise<EmailListResponse> {
-    const response = await api.get(`emails/folder/${folder}`, {
-      params: { page, limit },
-    });
+    const params: any = { page, limit };
+    
+    if (filters) {
+      if (filters.search) params.search = filters.search;
+      if (filters.from) params.from = filters.from;
+      if (filters.unread !== undefined) params.unread = filters.unread;
+      if (filters.starred !== undefined) params.starred = filters.starred;
+      if (filters.startDate) params.startDate = filters.startDate.toISOString();
+      if (filters.endDate) params.endDate = filters.endDate.toISOString();
+    }
+    
+    const response = await api.get(`emails/folder/${folder}`, { params });
     return response.data;
   },
 
@@ -184,6 +203,21 @@ export const emailService = {
 
   async getEmailAttachments(emailId: string): Promise<Attachment[]> {
     const response = await api.get(`emails/${emailId}/attachments`);
+    return response.data;
+  },
+
+  async bulkDelete(emailIds: string[]): Promise<{ message: string; deleted: number }> {
+    const response = await api.post('emails/bulk/delete', { emailIds });
+    return response.data;
+  },
+
+  async bulkToggleStar(emailIds: string[], star: boolean): Promise<{ message: string; modified: number }> {
+    const response = await api.post('emails/bulk/star', { emailIds, star });
+    return response.data;
+  },
+
+  async bulkMarkAsRead(emailIds: string[], isRead: boolean): Promise<{ message: string; modified: number }> {
+    const response = await api.post('emails/bulk/read', { emailIds, isRead });
     return response.data;
   },
 };

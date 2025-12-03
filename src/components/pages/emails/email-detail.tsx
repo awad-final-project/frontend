@@ -142,98 +142,117 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
   return (
     <div className="flex h-full flex-col">
       {/* Header - Gmail Style */}
-      <div className="border-b bg-white p-6">
-        <div className="mb-4 flex items-start justify-between gap-4">
-          <div className="flex-1">
-            <h2 className="mb-4 text-2xl font-semibold text-gray-900">{email.subject}</h2>
+      <div className="border-b bg-white p-4 md:p-6">
+        {/* Mobile back button at the top */}
+        {onBack && (
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onBack} 
+            className="mb-3 md:hidden -ml-2"
+            aria-label="Back to email list"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back
+          </Button>
+        )}
+        
+        <div className="mb-3 md:mb-4 flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h2 className="mb-3 md:mb-4 text-xl md:text-2xl font-semibold text-gray-900 break-words">{email.subject}</h2>
 
             {/* Sender info - Gmail style */}
-            <div className="mb-4 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-300 text-sm font-medium text-white">
-                {email.from.charAt(0).toUpperCase()}
+            <div className="mb-3 md:mb-4 flex items-start md:items-center gap-2 md:gap-3 flex-col sm:flex-row">
+              <div className="flex items-center gap-2 md:gap-3 w-full sm:w-auto">
+                <div className="flex h-8 w-8 md:h-10 md:w-10 items-center justify-center rounded-full bg-gray-300 text-xs md:text-sm font-medium text-white flex-shrink-0">
+                  {email.from.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm md:text-base text-gray-900 truncate">{email.from}</div>
+                  <div className="text-xs text-gray-500 truncate">to {email.to.split(",")[0]}</div>
+                </div>
               </div>
-              <div className="flex-1">
-                <div className="font-medium text-gray-900">{email.from}</div>
-                <div className="text-xs text-gray-500">to {email.to.split(",")[0]}</div>
-              </div>
-              <div className="text-right text-xs text-gray-500">
+              <div className="text-xs text-gray-500 sm:ml-auto">
                 {format(new Date(email.sentAt), "PPp")}
               </div>
             </div>
           </div>
 
-          <Button variant="ghost" size="icon" onClick={onClose} className="hidden md:flex">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onClose} 
+            className="hidden md:flex h-8 w-8 flex-shrink-0"
+            aria-label="Close"
+          >
             <X className="h-4 w-4" />
           </Button>
         </div>
 
-        {onBack && (
-          <Button variant="ghost" size="icon" onClick={onBack} className="mb-2 md:hidden">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        )}
-
         {/* Action buttons */}
-        <div className="flex flex-wrap gap-2 border-t pt-4">
-          <Button variant="outline" size="sm" onClick={handleReply} className="gap-2">
-            <Reply className="h-4 w-4" />
-            Reply
+        <div className="flex flex-wrap gap-1.5 md:gap-2 border-t pt-3 md:pt-4">
+          <Button variant="outline" size="sm" onClick={handleReply} className="gap-1.5 text-xs md:text-sm h-8 md:h-9">
+            <Reply className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            <span className="hidden sm:inline">Reply</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={handleReplyAll} className="gap-2">
-            <ReplyAll className="h-4 w-4" />
-            Reply All
+          <Button variant="outline" size="sm" onClick={handleReplyAll} className="gap-1.5 text-xs md:text-sm h-8 md:h-9">
+            <ReplyAll className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            <span className="hidden sm:inline">Reply All</span>
           </Button>
-          <Button variant="outline" size="sm" onClick={handleForward} className="gap-2">
-            <Forward className="h-4 w-4" />
-            Forward
+          <Button variant="outline" size="sm" onClick={handleForward} className="gap-1.5 text-xs md:text-sm h-8 md:h-9">
+            <Forward className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            <span className="hidden sm:inline">Forward</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleToggleStar}
             disabled={toggleStarMutation.isPending}
-            className="gap-2"
+            className="gap-1.5 text-xs md:text-sm h-8 md:h-9"
+            aria-label={email.isStarred ? "Unstar" : "Star"}
           >
             <Star
-              className={`h-4 w-4 ${email.isStarred ? "fill-yellow-400 text-yellow-400" : ""}`}
+              className={`h-3.5 w-3.5 md:h-4 md:w-4 ${email.isStarred ? "fill-yellow-400 text-yellow-400" : ""}`}
             />
-            {email.isStarred ? "Unstar" : "Star"}
+            <span className="hidden lg:inline">{email.isStarred ? "Unstar" : "Star"}</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleMarkAsUnread}
             disabled={markAsReadMutation.isPending}
-            className="gap-2"
+            className="gap-1.5 text-xs md:text-sm h-8 md:h-9"
+            aria-label="Mark as unread"
           >
-            <Mail className="h-4 w-4" />
-            Mark Unread
+            <Mail className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            <span className="hidden lg:inline">Unread</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleDelete}
             disabled={deleteEmailMutation.isPending}
-            className="gap-2"
+            className="gap-1.5 text-xs md:text-sm h-8 md:h-9"
+            aria-label="Delete"
           >
-            <Trash2 className="h-4 w-4" />
-            Delete
+            <Trash2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
+            <span className="hidden lg:inline">Delete</span>
           </Button>
         </div>
       </div>
 
 {/* Email Body */}
-<div className="flex-1 overflow-y-auto p-6">
+<div className="flex-1 overflow-y-auto p-4 md:p-6">
   {/* Attachments */}
   {email.attachments && email.attachments.length > 0 && (
-    <div className="mb-6">
-      <div className="flex items-center gap-2 mb-3">
+    <div className="mb-4 md:mb-6">
+      <div className="flex items-center gap-2 mb-2 md:mb-3">
         <Paperclip className="h-4 w-4 text-muted-foreground" />
         <span className="font-medium text-sm">
           Attachments ({email.attachments.length})
         </span>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 md:gap-3">
         {email.attachments.map((attachment) => (
           <div
             key={attachment.id || attachment.attachmentId}
@@ -328,6 +347,7 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
         height: auto;
         display: inline-block;
         vertical-align: middle;
+        loading: lazy;
       }
       
       /* Allow images to load from any source */

@@ -1,10 +1,13 @@
 import { useEmailsByFolder } from '@/hooks/react-query/useEmails';
-import { Loader2, Star, Paperclip, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { Star, Paperclip, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useEffect, useRef } from 'react';
+import { LoadingState, EmptyState } from '@/components/ui/loading-state';
+import { useEffect, useRef, memo } from 'react';
+import { EmailFilterValues } from './email-filters';
+import { useVirtualizer } from '@tanstack/react-virtual';
 
 interface EmailListProps {
   folder: string;
@@ -12,21 +15,31 @@ interface EmailListProps {
   onSelectEmail: (id: string) => void;
   page?: number;
   pageSize?: number;
+  filters?: EmailFilterValues;
   onPageChange?: (page: number) => void;
   onPageSizeChange?: (size: number) => void;
 }
 
-export function EmailList({ 
+export const EmailList = memo(function EmailList({ 
   folder, 
   selectedEmailId, 
   onSelectEmail,
   page = 1,
   pageSize = 25,
+  filters,
   onPageChange,
   onPageSizeChange
 }: EmailListProps) {
-  const { data, isLoading } = useEmailsByFolder(folder, page, pageSize);
+  const { data, isLoading } = useEmailsByFolder(folder, page, pageSize, filters);
   const listRef = useRef<HTMLDivElement>(null);
+
+  // Setup virtual scrolling
+  const virtualizer = useVirtualizer({
+    count: data?.emails.length || 0,
+    getScrollElement: () => listRef.current,
+    estimateSize: () => 88, // Approximate height of each email item
+    overscan: 5, // Number of items to render above/below the visible area
+  });
 
   // Scroll to top when page changes
   useEffect(() => {
@@ -77,70 +90,81 @@ export function EmailList({
     <div className="flex h-full flex-col">
       {/* Email List - scrollable area */}
       <div ref={listRef} className="flex-1 overflow-y-auto" role="list">
-        {isLoading && (
-          <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        )}
+        {isLoading && <LoadingState message="Loading emails..." />}
 
         {!isLoading && (!data || data.emails.length === 0) && (
-          <div className="flex h-full items-center justify-center p-8 text-muted-foreground">
-            <p>No emails in this folder</p>
-          </div>
+          <EmptyState 
+            title="No emails found" 
+            description="This folder is empty or no emails match your filters"
+          />
         )}
 
-        {!isLoading &&
-          data?.emails.map((email, index) => {
-            const isSelected = selectedEmailId === email.id;
+        {!isLoading && data && data.emails.length > 0 && (
+          <div
+            style={{
+              height: `${virtualizer.getTotalSize()}px`,
+              width: '100%',
+              position: 'relative',
+            }}
+          >
+            {virtualizer.getVirtualItems().map((virtualItem) => {
+              const email = data.emails[virtualItem.index];
+              const isSelected = selectedEmailId === email.id;
 
-            return (
-              <button
-                key={email.id}
-                data-email-index={index}
-                onClick={() => onSelectEmail(email.id)}
-                onKeyDown={(e) => handleKeyDown(e, email.id, index)}
-                className={cn(
-                  'w-full border-b p-4 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset',
-                  isSelected && 'bg-muted',
-                  !email.isRead && 'font-semibold'
-                )}
-                role="listitem"
-                aria-label={`Email from ${email.from}: ${email.subject}`}
-                aria-selected={isSelected}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1 overflow-hidden">
-                    <div className="flex items-center gap-2">
-                      <span className={cn('truncate', !email.isRead && 'font-bold')}>
-                        {email.from}
+              return (
+                <button
+                  key={email.id}
+                  data-email-index={virtualItem.index}
+                  onClick={() => onSelectEmail(email.id)}
+                  onKeyDown={(e) => handleKeyDown(e, email.id, virtualItem.index)}
+                  className={cn(
+                    'w-full border-b p-4 text-left transition-colors hover:bg-muted/50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset absolute top-0 left-0',
+                    isSelected && 'bg-muted',
+                    !email.isRead && 'font-semibold'
+                  )}
+                  style={{
+                    height: `${virtualItem.size}px`,
+                    transform: `translateY(${virtualItem.start}px)`,
+                  }}
+                  role="listitem"
+                  aria-label={`Email from ${email.from}: ${email.subject}`}
+                  aria-selected={isSelected}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1 overflow-hidden">
+                      <div className="flex items-center gap-2">
+                        <span className={cn('truncate', !email.isRead && 'font-bold')}>
+                          {email.from}
+                        </span>
+                        {email.isStarred && (
+                          <Star
+                            className="h-3 w-3 fill-yellow-400 text-yellow-400"
+                            aria-label="Starred"
+                          />
+                        )}
+                      </div>
+                      <p className={cn('truncate text-sm', !email.isRead && 'font-semibold')}>
+                        {email.subject}
+                      </p>
+                      <p className="truncate text-xs text-muted-foreground">{email.preview}</p>
+                    </div>
+                    <div className="flex flex-col items-end gap-1">
+                      <span className="whitespace-nowrap text-xs text-muted-foreground">
+                        {format(new Date(email.sentAt), 'MMM d')}
                       </span>
-                      {email.isStarred && (
-                        <Star
-                          className="h-3 w-3 fill-yellow-400 text-yellow-400"
-                          aria-label="Starred"
-                        />
+                      {!email.isRead && (
+                        <div className="h-2 w-2 rounded-full bg-blue-500" aria-label="Unread" />
+                      )}
+                      {email.attachments && email.attachments.length > 0 && (
+                        <Paperclip className="h-3 w-3 text-muted-foreground" aria-label="Has attachments" />
                       )}
                     </div>
-                    <p className={cn('truncate text-sm', !email.isRead && 'font-semibold')}>
-                      {email.subject}
-                    </p>
-                    <p className="truncate text-xs text-muted-foreground">{email.preview}</p>
                   </div>
-                  <div className="flex flex-col items-end gap-1">
-                    <span className="whitespace-nowrap text-xs text-muted-foreground">
-                      {format(new Date(email.sentAt), 'MMM d')}
-                    </span>
-                    {!email.isRead && (
-                      <div className="h-2 w-2 rounded-full bg-blue-500" aria-label="Unread" />
-                    )}
-                    {email.attachments && email.attachments.length > 0 && (
-                      <Paperclip className="h-3 w-3 text-muted-foreground" aria-label="Has attachments" />
-                    )}
-                  </div>
-                </div>
-              </button>
-            );
-          })}
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Pagination Controls - Fixed at bottom, outside scroll area */}
@@ -224,4 +248,4 @@ export function EmailList({
       )}
     </div>
   );
-}
+});
