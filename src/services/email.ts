@@ -50,6 +50,8 @@ export interface EmailListResponse {
   page: number;
   limit: number;
   totalPages: number;
+  nextPageToken?: string;
+  hasMore: boolean;
 }
 
 export interface SendEmailDto {

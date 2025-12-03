@@ -67,6 +67,7 @@ export function EmailList({
   };
 
   const totalPages = data?.totalPages || 0;
+  const hasMore = data?.hasMore ?? false;
   const currentTotal = data?.total || 0;
   const startItem = currentTotal > 0 ? (page - 1) * pageSize + 1 : 0;
   const endItem = Math.min(page * pageSize, currentTotal);
@@ -199,7 +200,8 @@ export function EmailList({
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => onPageChange(page + 1)}
-                  disabled={page >= totalPages}
+                  disabled={!hasMore}
+                  title={hasMore ? 'Next page' : 'No more pages'}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -208,7 +210,8 @@ export function EmailList({
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => onPageChange(totalPages)}
-                  disabled={page >= totalPages}
+                  disabled={!hasMore}
+                  title={hasMore ? 'Last page' : 'No more pages'}
                 >
                   <ChevronsRight className="h-4 w-4" />
                 </Button>
