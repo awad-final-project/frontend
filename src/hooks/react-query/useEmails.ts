@@ -6,6 +6,8 @@ export function useMailboxes() {
   return useQuery({
     queryKey: ['mailboxes'],
     queryFn: () => emailService.getMailboxes(),
+    staleTime: 30000, // Cache mailbox counts for 30 seconds
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 }
 
@@ -19,6 +21,9 @@ export function useEmailsByFolder(
     queryKey: ['emails', folder, page, limit, filters],
     queryFn: () => emailService.getEmailsByFolder(folder, page, limit, filters),
     enabled: !!folder,
+    staleTime: 0, // Always fetch fresh data for emails
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Refetch when component mounts
   });
 }
 

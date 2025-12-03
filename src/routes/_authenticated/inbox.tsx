@@ -10,7 +10,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { PenSquare, RefreshCw, Mail, LogOut, User, Settings, Shield, Menu } from 'lucide-react';
 import { ComposeDialog } from '@/components/pages/emails/compose-dialog';
-import { useMailboxes, useMarkAsRead, useToggleStar, useDeleteEmail } from '@/hooks/react-query/useEmails';
+import { useMailboxes, useMarkAsRead, useToggleStar, useDeleteEmail, useEmailsByFolder } from '@/hooks/react-query/useEmails';
 import { useSignOut, useUserProfile } from '@/hooks/react-query/useAuth';
 import { useUserRole } from '@/hooks/useRole';
 import {
@@ -38,6 +38,7 @@ function InboxPage() {
   const [pageSize, setPageSize] = useState(25);
   const [filters, _] = useState<EmailFilterValues>({});
   const { refetch: refetchMailboxes } = useMailboxes();
+  const { refetch: refetchEmails } = useEmailsByFolder(selectedFolder, currentPage, pageSize, filters);
   const { data: userProfile } = useUserProfile();
   const signOutMutation = useSignOut();
   const markAsReadMutation = useMarkAsRead();
@@ -122,6 +123,7 @@ function InboxPage() {
 
   const handleRefresh = () => {
     refetchMailboxes();
+    refetchEmails();
   };
 
   // const handleFiltersChange = (newFilters: EmailFilterValues) => {
