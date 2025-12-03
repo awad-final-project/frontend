@@ -118,6 +118,8 @@ export function EmailDetail({ emailId, onClose, onDelete, onBack }: EmailDetailP
 
   const handleDownloadAttachment = (attachmentId: string, filename: string) => {
     downloadAttachmentMutation.mutate({ attachmentId, filename });
+  };
+
   const handleReply = () => {
     setComposeMode("reply");
     setComposeOpen(true);
