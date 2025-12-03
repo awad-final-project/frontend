@@ -158,7 +158,7 @@ function InboxPage() {
         </div>
 
         {/* Column 2: Email List - 40% width on desktop */}
-        <div className={`w-full flex-shrink-0 border-r bg-background md:w-[40%] ${isMobileDetailView ? 'hidden md:block' : 'block'}`}>
+        <div className={`flex h-full w-full flex-shrink-0 flex-col border-r bg-background md:w-[40%] ${isMobileDetailView ? 'hidden md:block' : 'block'}`}>
           <div className="flex items-center justify-between border-b bg-muted/30 px-4 py-3">
             <h2 className="text-lg font-semibold capitalize">{selectedFolder}</h2>
             <Button

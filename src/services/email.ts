@@ -67,6 +67,11 @@ export interface UploadAttachmentResponse {
   s3Key: string;
 }
 
+export interface ReplyEmailDto {
+  body: string;
+  replyAll?: boolean;
+}
+
 export const emailService = {
   async getMailboxes(): Promise<Mailbox[]> {
     const response = await api.get('emails/mailboxes');
@@ -91,6 +96,11 @@ export const emailService = {
 
   async sendEmail(data: SendEmailDto): Promise<{ message: string }> {
     const response = await api.post('emails/send', data);
+    return response.data;
+  },
+
+  async replyEmail(id: string, data: ReplyEmailDto): Promise<{ message: string }> {
+    const response = await api.post(`emails/${id}/reply`, data);
     return response.data;
   },
 
