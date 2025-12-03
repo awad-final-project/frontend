@@ -47,20 +47,3 @@ jobs:
             VITE_API_BASE_URL=https://mail-dev.nguyenanhhao.site/api
             VITE_USE_COOKIE_AUTH=true
 
-  deploy:
-    needs: build-and-push
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Deploy to Dev Server
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          script: |
-            cd /opt/devops
-            # Pull the new image
-            docker compose -f docker-compose.dev.yml pull frontend-dev
-            # Restart the service
-            docker compose -f docker-compose.dev.yml up -d frontend-dev

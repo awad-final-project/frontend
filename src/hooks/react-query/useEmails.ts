@@ -1,19 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { emailService, SendEmailDto } from '@/services/email';
+import { emailService, SendEmailDto, ReplyEmailDto, EmailFilters } from '@/services/email';
 import { useToast } from '@/hooks/use-toast';
 
 export function useMailboxes() {
   return useQuery({
     queryKey: ['mailboxes'],
     queryFn: () => emailService.getMailboxes(),
+    staleTime: 30000, // Cache mailbox counts for 30 seconds
+    refetchOnWindowFocus: true, // Refetch when window gains focus
   });
 }
 
-export function useEmailsByFolder(folder: string, page: number = 1, limit: number = 50) {
+export function useEmailsByFolder(
+  folder: string, 
+  page: number = 1, 
+  limit: number = 50,
+  filters?: EmailFilters
+) {
   return useQuery({
-    queryKey: ['emails', folder, page, limit],
-    queryFn: () => emailService.getEmailsByFolder(folder, page, limit),
+    queryKey: ['emails', folder, page, limit, filters],
+    queryFn: () => emailService.getEmailsByFolder(folder, page, limit, filters),
     enabled: !!folder,
+    staleTime: 0, // Always fetch fresh data for emails
+    refetchOnWindowFocus: true, // Refetch when window gains focus
+    refetchOnMount: true, // Refetch when component mounts
   });
 }
 
@@ -43,6 +53,33 @@ export function useSendEmail() {
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to send email',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useReplyEmail() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: ReplyEmailDto }) => {
+      return emailService.replyEmail(id, data);
+    },
+    onSuccess: (_response, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+      queryClient.invalidateQueries({ queryKey: ['email', variables.id] });
+      toast({
+        title: 'Success',
+        description: 'Reply sent successfully!',
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to send reply',
         variant: 'destructive',
       });
     },
@@ -83,20 +120,16 @@ export function useMarkAsRead() {
     mutationFn: ({ id, isRead }: { id: string; isRead: boolean }) =>
       emailService.markAsRead(id, isRead),
     onMutate: async ({ id, isRead }) => {
-      // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['email', id] });
       await queryClient.cancelQueries({ queryKey: ['emails'] });
 
-      // Snapshot previous value
       const previousEmail = queryClient.getQueryData(['email', id]);
 
-      // Optimistically update email detail
       queryClient.setQueryData(['email', id], (old: any) => {
         if (!old) return old;
         return { ...old, isRead };
       });
 
-      // Optimistically update email lists
       queryClient.setQueriesData({ queryKey: ['emails'] }, (old: any) => {
         if (!old?.emails) return old;
         return {
@@ -110,7 +143,6 @@ export function useMarkAsRead() {
       return { previousEmail };
     },
     onError: (_err, { id }, context) => {
-      // Rollback on error
       if (context?.previousEmail) {
         queryClient.setQueryData(['email', id], context.previousEmail);
       }
@@ -164,6 +196,114 @@ export function useSeedMockEmails() {
       toast({
         title: 'Error',
         description: error.response?.data?.message || 'Failed to seed emails',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useUploadAttachment() {
+  return useMutation({
+    mutationFn: (file: File) => emailService.uploadAttachment(file),
+  });
+}
+
+export function useUploadMultipleAttachments() {
+  return useMutation({
+    mutationFn: (files: File[]) => emailService.uploadMultipleAttachments(files),
+  });
+}
+
+export function useDownloadAttachment() {
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ attachmentId, filename, emailId }: { attachmentId: string; filename: string; emailId?: string }) =>
+      emailService.downloadAttachment(attachmentId, filename, emailId),
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to download attachment',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useGetAttachmentDownloadUrl() {
+  return useMutation({
+    mutationFn: (attachmentId: string) => emailService.getAttachmentDownloadUrl(attachmentId),
+  });
+}
+
+export function useBulkDelete() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: (emailIds: string[]) => emailService.bulkDelete(emailIds),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+      toast({
+        title: 'Success',
+        description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to delete emails',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useBulkToggleStar() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ emailIds, star }: { emailIds: string[]; star: boolean }) =>
+      emailService.bulkToggleStar(emailIds, star),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+      toast({
+        title: 'Success',
+        description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to update emails',
+        variant: 'destructive',
+      });
+    },
+  });
+}
+
+export function useBulkMarkAsRead() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: ({ emailIds, isRead }: { emailIds: string[]; isRead: boolean }) =>
+      emailService.bulkMarkAsRead(emailIds, isRead),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['mailboxes'] });
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+      toast({
+        title: 'Success',
+        description: data.message,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.response?.data?.message || 'Failed to update emails',
         variant: 'destructive',
       });
     },

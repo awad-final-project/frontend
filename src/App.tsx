@@ -19,6 +19,34 @@ export const queryClient = new QueryClient({
         return false;
       },
       staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: (failureCount, error) => {
+        // Don't retry on 4xx errors (client errors)
+        if (error instanceof HTTPError) {
+          const status = error.response?.status || 0;
+          if (status >= 400 && status < 500) {
+            return false;
+          }
+        }
+        // Retry up to 3 times for network errors and 5xx errors
+        return failureCount < 3;
+      },
+      retryDelay: (attemptIndex) => {
+        // Exponential backoff: 1s, 2s, 4s
+        return Math.min(1000 * 2 ** attemptIndex, 30000);
+      },
+    },
+    mutations: {
+      retry: (failureCount, error) => {
+        // Don't retry mutations on client errors
+        if (error instanceof HTTPError) {
+          const status = error.response?.status || 0;
+          if (status >= 400 && status < 500) {
+            return false;
+          }
+        }
+        // Retry once for network errors
+        return failureCount < 1;
+      },
     },
   },
   queryCache: new QueryCache({

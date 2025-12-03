@@ -8,6 +8,8 @@ import App from "./App.tsx";
 import { getRefreshToken, refreshAccessToken } from "./services";
 import { useToast } from "./hooks/use-toast";
 import { useAuthStore } from "./hooks/useAuthStore";
+import { ThemeProvider } from "./components/theme-provider";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 function Boot({ children }: { children: React.ReactNode }) {
   const [booting, setBooting] = useState(true);
@@ -57,8 +59,12 @@ function Boot({ children }: { children: React.ReactNode }) {
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <Boot>
-      <App />
-    </Boot>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <Boot>
+          <App />
+        </Boot>
+      </ThemeProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 );
